@@ -22,10 +22,15 @@ struct BooboApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
+    
+    static let router = Router()
+    @StateObject var sessionManager = SessionManager()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(Self.router)
+                .environmentObject(sessionManager)
         }
         .modelContainer(sharedModelContainer)
     }
