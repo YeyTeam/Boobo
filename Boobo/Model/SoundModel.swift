@@ -5,13 +5,14 @@
 //  Created by Muhammad Chandra Ramadhan on 14/09/25.
 //
 
-import Foundation
+import SwiftData
 
+@Model
 class SoundModel {
     var name: String
-    var sound: URL
+    var sound: String
     
-    init(name: String, sound: URL) {
+    init(name: String, sound: String) {
         self.name = name
         self.sound = sound
     }
