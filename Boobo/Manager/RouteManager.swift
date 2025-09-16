@@ -15,9 +15,9 @@ class RouteManager: ObservableObject {
         mainPath.append(route)
     }
     
-    func goBack<T: Hashable>(path: Binding<[T]>) {
-        if !path.isEmpty {
-            path.wrappedValue.removeLast()
+    func goBack() {
+        if !mainPath.isEmpty {
+            mainPath.removeLast()
         }
     }
     
@@ -34,7 +34,7 @@ class RouteManager: ObservableObject {
         }
     }
     
-    func resetRoot<T: Hashable>(path: Binding<[T]>) {
-        path.wrappedValue.removeAll()
+    func resetRoot() {
+        mainPath.removeAll()
     }
 }

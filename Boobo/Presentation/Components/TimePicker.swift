@@ -40,7 +40,7 @@ struct TimePicker: View {
                 }
                 .pickerStyle(.wheel)
                 .clipped()
-                .onChange(of: selectedHourIndex) { newValue in
+                .onChange(of: selectedHourIndex) { _, newValue in
                     if newValue < 24 {
                         selectedHourIndex = newValue + 24
                     } else if newValue >= 48 {
@@ -61,7 +61,7 @@ struct TimePicker: View {
                     }
                     .pickerStyle(.wheel)
                     .clipped()
-                    .onChange(of: selectedMinuteIndex) { newValue in
+                    .onChange(of: selectedMinuteIndex) { _, newValue in
                         if newValue < 60 {
                             selectedMinuteIndex = newValue + 60
                         } else if newValue >= 120 {
