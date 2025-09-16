@@ -19,7 +19,6 @@ class AudioEngineService{
         do{
             try audioEngine.start()
         }catch{
-            print("Error starting audio engine \(error.localizedDescription)")
             throw error
         }
     }

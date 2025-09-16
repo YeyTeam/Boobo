@@ -7,6 +7,7 @@
 
 enum MainRouter: Hashable, Equatable {
     case onboarding
+    case home
     case setting
     case sleepTime
 }

@@ -13,14 +13,13 @@ struct ContentView: View {
 //    @EnvironmentObject var sessionManager: SessionManager
     
     var body: some View {
-        SoundPlay()
-//        NavigationStack(path: $router.mainPath) {
-//            OnBoardingView()
-//            .navigationDestination(for: MainRouter.self) {
-//                route in
-//                router.getContent(route: route)
-//            }
-//        }
+        NavigationStack(path: $router.mainPath) {
+            OnBoardingView()
+            .navigationDestination(for: MainRouter.self) {
+                route in
+                router.getContent(route: route)
+            }
+        }
     }
 }
 

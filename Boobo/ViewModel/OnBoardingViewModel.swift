@@ -9,9 +9,11 @@ import SwiftUI
 
 class OnBoardingViewModel : ObservableObject {
     @Published var pageIndex : Int
+    @Published var routeManager : RouteManager?
     
     init() {
         self.pageIndex = 0
+        self.routeManager = nil
     }
     
     func renderBoardingPage(viewModel : OnBoardingViewModel) -> any View{
@@ -31,6 +33,9 @@ class OnBoardingViewModel : ObservableObject {
     
     func nextPage(){
         pageIndex += 1
+        if pageIndex == 4 {
+            self.routeManager?.navigate(to: .home)
+        }
         pageIndex = max(0, min(pageIndex, 3))
         print("Page Index : \(pageIndex)")
     }
