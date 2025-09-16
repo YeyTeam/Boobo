@@ -6,7 +6,12 @@
 //
 import Foundation
 
-class AudioPlayerManager:AudioPlayerService {
+class AudioPlayerManager  {
+    var audioPlayer : [AudioPlayerService]
+    
+    init() {
+        self.audioPlayer = []
+    }
     
     func playSound(sound : String) throws {
         do {
@@ -14,13 +19,12 @@ class AudioPlayerManager:AudioPlayerService {
                 print("Audio file name not found !")
                 throw AudioPlayerError.fileNotFound
             }
-            try play(url: url)
+            audioPlayer.append(AudioPlayerService())
+            try audioPlayer[0].play(url: url)
         }catch{
             throw AudioPlayerError.audioPlayerFailedToInitialize
         }
     }
     
-    override func stop() {
-        super.stop()
-    }
+    
 }
