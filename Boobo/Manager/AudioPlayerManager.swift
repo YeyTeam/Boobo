@@ -4,23 +4,42 @@
 //
 //  Created by Muhammad Chandra Ramadhan on 15/09/25.
 //
-import Foundation
+import AVFoundation
 
-class AudioPlayerManager:AudioPlayerService {
+class AudioPlayerManager {
+    private var audioEngineService: AudioEngineService = AudioEngineService()
+    private var players: [AVAudioPlayerNode] = []
+
     
-    func playSound(sound : String) throws {
-        do {
-            guard let url = Bundle.main.url(forResource: sound, withExtension: "mp3") else {
-                print("Audio file name not found !")
-                throw AudioPlayerError.fileNotFound
+    func playSounds(sounds: [String]) throws {
+        stopAll()
+        
+        for sound in sounds {
+            guard let url = Bundle.main.url(forResource: sound, withExtension: "mp3") else { continue }
+            do {
+                let file = try AVAudioFile(forReading: url)
+                let playerNode = AVAudioPlayerNode()
+                players.append(playerNode)
+                
+                audioEngineService.attachPlayer(node: playerNode, format: file.processingFormat)
+                playerNode.scheduleFile(file, at: nil, completionHandler: nil)
+            } catch {
+                print("Error loading \(sound): \(error)")
             }
-            try play(url: url)
-        }catch{
-            throw AudioPlayerError.audioPlayerFailedToInitialize
         }
+        
+        do{
+            try audioEngineService.startEngine()
+        }catch{
+            throw error
+        }
+        players.forEach { $0.play() }
     }
     
-    override func stop() {
-        super.stop()
+    func stopAll() {
+        players.forEach { $0.stop() }
+        players.removeAll()
+        audioEngineService.stopEngine()
     }
 }
+

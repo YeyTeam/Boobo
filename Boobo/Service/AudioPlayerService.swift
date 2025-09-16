@@ -13,6 +13,8 @@ class AudioPlayerService {
     func play(url : URL) throws {
         do{
             player = try AVAudioPlayer(contentsOf: url)
+            player?.prepareToPlay()
+            player?.play()
         }catch{
             print("Cannot start audio player because of error: \(error)")
             throw error

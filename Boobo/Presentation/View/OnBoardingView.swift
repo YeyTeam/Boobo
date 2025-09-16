@@ -9,6 +9,7 @@ import SwiftUI
 
 struct OnBoardingView: View {
     @StateObject var viewModel: OnBoardingViewModel = OnBoardingViewModel()
+    @EnvironmentObject var routeManager:RouteManager
     
     var body: some View {
         VStack{
@@ -16,6 +17,9 @@ struct OnBoardingView: View {
         }
         .padding(20)
         .frame(maxHeight : .infinity)
+        .onAppear(){
+            viewModel.routeManager = routeManager
+        }
     }
 }
 

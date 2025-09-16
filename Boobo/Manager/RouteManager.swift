@@ -24,11 +24,13 @@ class RouteManager: ObservableObject {
     func getContent(route : MainRouter) -> some View{
         switch route {
         case .onboarding:
-            return OnBoardingView()
+            return AnyView(OnBoardingView())
         case .setting:
-            return OnBoardingView()
+            return AnyView(OnBoardingView())
         case .sleepTime:
-            return OnBoardingView()
+            return AnyView(OnBoardingView())
+        case .home:
+            return AnyView(SoundPlay())
         }
     }
     
