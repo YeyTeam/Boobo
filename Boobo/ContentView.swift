@@ -9,45 +9,35 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @EnvironmentObject var router: Router
-    @EnvironmentObject var sessionManager: SessionManager
+    @EnvironmentObject var router: RouteManager
+//    @EnvironmentObject var sessionManager: SessionManager
     
     var body: some View {
         NavigationStack(path: $router.mainPath) {
-            VStack {
-                Text("content view")
-            }
+            OnBoardingView()
             .navigationDestination(for: MainRouter.self) {
                 route in
-                switch route {
-                case .onboarding:
-                    Text("Onboarding")
-                case .setting:
-                    Text("Setting")
-                case .sleepTime:
-                    Text("Sleep Hygiene")
-                }
+                router.getContent(route: route)
             }
         }
     }
 }
 
 #Preview {
-    // Buat container khusus preview
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: SoundModel.self, configurations: config)
-    
-    // Insert data dummy
-    let context = container.mainContext
-    context.insert(SoundModel(name: "Rain", sound: "rain.WAV"))
-    context.insert(SoundModel(name: "Wind", sound: "wind.WAV"))
-    
-    // Buat instance router & session untuk preview
-    let router = Router()
-    let sessionManager = SessionManager()
-    
-    return ContentView()
+//    // Buat container khusus preview
+//    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+//    let container = try! ModelContainer(for: SoundModel.self, configurations: config)
+//    
+//    // Insert data dummy
+//    let context = container.mainContext
+//    context.insert(SoundModel(name: "Rain", sound: "rain.WAV"))
+//    context.insert(SoundModel(name: "Wind", sound: "wind.WAV"))
+//    
+//    // Buat instance router & session untuk preview
+    let router = RouteManager()
+//    let sessionManager = SessionManager()
+//    
+    ContentView()
         .environmentObject(router)
-        .environmentObject(sessionManager)
-        .modelContainer(container)
+        
 }
