@@ -14,7 +14,7 @@ struct SleepHygieneStepContent: Hashable {
 }
 
 struct SleepHygieneView: View {
-    @EnvironmentObject var router: Router
+    @EnvironmentObject var router: RouteManager
     @EnvironmentObject var sessionManager: SessionManager
     
     @State private var currentStep = 0
@@ -57,7 +57,7 @@ struct SleepHygieneView: View {
                     .buttonStyle(PrimaryButtonStyle())
                 } else {
                     Button("Finish") {
-                        router.resetRoot(path: $router.mainPath)
+                        router.resetRoot()
                         sessionManager.setupSleepTime()
                     }
                     .buttonStyle(PrimaryButtonStyle())
