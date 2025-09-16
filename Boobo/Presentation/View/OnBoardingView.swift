@@ -8,12 +8,11 @@
 import SwiftUI
 
 struct OnBoardingView: View {
-    let viewModel: OnBoardingViewModel = OnBoardingViewModel()
+    @StateObject var viewModel: OnBoardingViewModel = OnBoardingViewModel()
     
     var body: some View {
         VStack{
-            AnyView(viewModel.renderBoardingPage())
-            
+            AnyView(viewModel.renderBoardingPage(viewModel: viewModel))
         }
         .padding(20)
         .frame(maxHeight : .infinity)

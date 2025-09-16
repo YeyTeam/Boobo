@@ -8,13 +8,7 @@
 import Foundation
 import SwiftUI
 
-enum MainRouter: Hashable, Equatable {
-    case onboarding
-    case setting
-    case sleepTime
-}
-
-class Router: ObservableObject {
+class RouteManager: ObservableObject {
     @Published var mainPath: [MainRouter] = []
     
     func navigate(to route: MainRouter) {
@@ -24,6 +18,17 @@ class Router: ObservableObject {
     func goBack<T: Hashable>(path: Binding<[T]>) {
         if !path.isEmpty {
             path.wrappedValue.removeLast()
+        }
+    }
+    
+    func getContent(route : MainRouter) -> some View{
+        switch route {
+        case .onboarding:
+            return OnBoardingView()
+        case .setting:
+            return OnBoardingView()
+        case .sleepTime:
+            return OnBoardingView()
         }
     }
     

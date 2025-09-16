@@ -23,7 +23,7 @@ struct BooboApp: App {
         }
     }()
     
-    static let router = Router()
+    static let router = RouteManager()
     @StateObject var sessionManager = SessionManager()
 
     var body: some Scene {

@@ -9,6 +9,8 @@
 import SwiftUI
 
 struct OnBoarding3:View {
+    var viewModel:OnBoardingViewModel?
+    
     var body: some View {
         VStack{
             
@@ -37,7 +39,7 @@ struct OnBoarding3:View {
             Spacer()
             
             PrimaryButton(text : "Get Started"){
-                
+                viewModel?.nextPage()
             }
             
             Button(

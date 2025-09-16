@@ -7,8 +7,36 @@
 
 import SwiftUI
 
-class OnBoardingViewModel {
-    func renderBoardingPage() -> any View{
-        return AnyView(OnBoarding4())
+class OnBoardingViewModel : ObservableObject {
+    @Published var pageIndex : Int
+    
+    init() {
+        self.pageIndex = 0
+    }
+    
+    func renderBoardingPage(viewModel : OnBoardingViewModel) -> any View{
+        switch pageIndex {
+            case 0:
+                return AnyView(OnBoarding1( viewModel: viewModel))
+            case 1:
+                return AnyView(OnBoarding2( viewModel: viewModel))
+            case 2:
+                return AnyView(OnBoarding3( viewModel: viewModel))
+            case 3:
+                return AnyView(OnBoarding4( viewModel: viewModel))
+        default:
+            return AnyView(EmptyView())
+        }
+    }
+    
+    func nextPage(){
+        pageIndex += 1
+        pageIndex = max(0, min(pageIndex, 3))
+        print("Page Index : \(pageIndex)")
+    }
+    
+    func prevPage(){
+        pageIndex -= 1
+        pageIndex = max(0, min(pageIndex, 3))
     }
 }
