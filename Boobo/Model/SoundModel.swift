@@ -6,14 +6,18 @@
 //
 
 import SwiftData
+import Foundation
 
-@Model
-class SoundModel {
+class SoundModel : ObservableObject, Identifiable{
     var name: String
-    var sound: String
+    var url: String
+    var icon : String
+    @Published var volume : Double = 1
     
-    init(name: String, sound: String) {
+    init(name: String, url: String, icon : String,volume : Double = 1.0) {
         self.name = name
-        self.sound = sound
+        self.url = url
+        self.volume = volume
+        self.icon = icon
     }
 }

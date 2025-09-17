@@ -58,7 +58,7 @@ struct SleepHygieneView: View {
                 } else {
                     Button("Finish") {
                         router.resetRoot()
-                        sessionManager.setupSleepTime()
+                        //sessionManager.setupSleepTime()
                     }
                     .buttonStyle(PrimaryButtonStyle())
                 }

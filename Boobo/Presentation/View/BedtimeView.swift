@@ -120,6 +120,7 @@ struct BedtimeView: View {
             WakeUpTimeSheet()
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
+                .presentationBackground(.thinMaterial)
         }
     }
 }
@@ -137,9 +138,14 @@ struct WakeUpTimeSheet: View {
             HStack {
                 Text("Wake Up Time")
                     .foregroundStyle(.white)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity)
+                    .font(.headline)
                 Image(systemName: "x.circle.fill")
                     .foregroundStyle(.white)
             }
+            .frame(maxWidth : .infinity)
+            
             HStack {
                 VStack {
                     Text("WAKE UP")
@@ -147,6 +153,7 @@ struct WakeUpTimeSheet: View {
                     Text(selectedTime.formatted(
                         date: .omitted, time: .shortened))
                     .foregroundColor(Color(hex: "FEBB2E"))
+                    .font(.title2.bold())
                 }
                 Spacer()
                 VStack {
@@ -154,20 +161,36 @@ struct WakeUpTimeSheet: View {
                         .foregroundStyle(.gray)
                     Text(sleepTime.formatted(date: .omitted, time: .shortened))
                         .foregroundStyle(.white)
+                        .font(.title2.bold())
+
                 }
             }
+            .padding(20)
+            .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(.black.opacity(0.2))
+            )
+            
             DatePicker("Pilih Jam", selection: $selectedTime, displayedComponents: .hourAndMinute)
                 .datePickerStyle(.wheel)
                 .labelsHidden()
+                .frame(height : 150)
             Button(action: {
                 print("Wake Up: \(selectedTime)")
                 print("Sleep: \(sleepTime)")
             }) {
                 Text("Save")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(.white)
+                    )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.gray.opacity(0.3))
+        .padding(30)
+        .background(.blue.opacity(0.5))
         .ignoresSafeArea()
     }
 }

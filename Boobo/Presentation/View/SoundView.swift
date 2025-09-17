@@ -14,7 +14,7 @@ struct SoundView: View {
     
     @EnvironmentObject var routeManager: RouteManager
     
-
+    @StateObject var viewModel: SoundViewModel = SoundViewModel()
     // Selection state for chips (pure UI for now)
     @State private var selected: Set<String> = ["waterfall", "birds"]
 
@@ -61,9 +61,19 @@ struct SoundView: View {
     // MARK: - Sliders
     private var sliders: some View {
         HStack(spacing: 44) {
-            VerticalFader(value: $vThunder, symbol: "radiowaves.left")
-            VerticalFader(value: $vWater,   symbol: "water.waves")
-            VerticalFader(value: $vBirds,   symbol: "bird.fill")
+            ForEach(0..<3) { value in
+                if value < $viewModel.sounds.count {
+                    VerticalFader(value: $viewModel.sounds[value].volume, symbol: viewModel.sounds[value].icon)
+                        .onChange(of: viewModel.sounds[value].volume) { newValue,_ in
+                            viewModel.updateVolume(index: value, volume: Float(newValue))
+                        }
+                }else{
+                    VerticalFader(value: .constant(0.5), symbol: "plus.circle")
+                    
+                }
+            }
+            
+            
         }
         .padding(.top, 6)
     }
@@ -74,11 +84,9 @@ struct SoundView: View {
             Divider().overlay(.white.opacity(0.15))
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
-                    Chip(title: "Thunder Storm",  key: "thunder",   system: "cloud.bolt.rain.fill", selected: $selected)
-                    Chip(title: "Waterfall",       key: "waterfall", system: "water.waves",          selected: $selected)
-                    Chip(title: "Birds",           key: "birds",     system: "bird.fill",            selected: $selected)
-                    Chip(title: "Wind",            key: "wind",      system: "wind",                 selected: $selected)
-                    Chip(title: "Clock Ticking",   key: "clock",     system: "clock",                selected: $selected)
+                    ForEach(soundList, id : \.self.id){ sound in
+                        Chip(sound : sound, selected: $selected, viewModel: viewModel)
+                    }
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
@@ -104,7 +112,7 @@ struct SoundView: View {
     private var controls: some View {
         HStack(spacing: 42) {
             ActionCircleButton(systemName: "timer")
-            PlayButton()
+            PlayButton(viewModel: viewModel)
             ActionCircleButton(systemName: "plus")
         }
         .padding(.top, 4)
@@ -121,53 +129,7 @@ struct SoundView: View {
 // Components
 // ==========================================================
 
-private struct VerticalFader: View {
-    @Binding var value: Double // 0...1
-    let symbol: String
 
-    var body: some View {
-        GeometryReader { geo in
-            let height = geo.size.height
-
-            ZStack(alignment: .bottom) {
-                // Track
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(Color.black.opacity(0.28))
-                    .frame(width: 20)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(.white.opacity(0.12), lineWidth: 1)
-                    )
-
-                // Fill
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(Color.white.opacity(0.15))
-                    .frame(width: 20)
-                    .frame(height: height * value)
-
-                // Knob
-                Image(systemName: symbol)
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(.black)
-                    .frame(width: 56, height: 56)
-                    .background(Circle().fill(Color(red: 0.92, green: 0.80, blue: 0.50)))
-                    .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 10))
-                    .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
-                    .offset(y: -(height - 56) * value)
-            }
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { g in
-                        // Clamp value between 0 and 1
-                        let clamped = max(0, min(height, height - g.location.y))
-                        value = clamped / height
-                    }
-            )
-        }
-        .frame(width: 70, height: 210)
-        .padding(.vertical, 10)
-    }
-}
 
 private struct HeartButton: View {
     var body: some View {
@@ -185,26 +147,27 @@ private struct HeartButton: View {
 }
 
 private struct Chip: View {
-    let title: String
-    let key: String
-    let system: String
+    var sound: SoundModel
+    
     @Binding var selected: Set<String>
+    @StateObject var viewModel : SoundViewModel
 
-    var isOn: Bool { selected.contains(key) }
+    @State var isOn: Bool = false
 
     var body: some View {
         Button {
-            if isOn { selected.remove(key) } else { selected.insert(key) }
+            isOn = viewModel.addSound(sound)
+            //if isOn { selected.remove(key) } else { selected.insert(key) }
         } label: {
             VStack(spacing: 8) {
-                Image(systemName: system)
+                Image(systemName: sound.icon)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(isOn ? .black : .white)
                     .frame(width: 50, height: 50)
                     .background(Circle().fill(isOn
                         ? Color(red: 0.92, green: 0.80, blue: 0.50)
                         : .white.opacity(0.16)))
-                Text(title)
+                Text(sound.name)
                     .font(.caption2)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.white)
@@ -246,22 +209,26 @@ private struct ActionCircleButton: View {
 }
 
 private struct PlayButton: View {
-    var audioPlayer: AudioPlayerManager = AudioPlayerManager()
+    @StateObject var viewModel:SoundViewModel
 
     var body: some View {
         Button {
-            do {
-                try audioPlayer.playSounds(sounds : ["rain_sound","thunderstorm"])
-            }catch{
-                print("Error \(error.localizedDescription)")
-            }
+            viewModel.playSound()
+            
         } label: {
             ZStack {
                 Circle().stroke(.white.opacity(0.9), lineWidth: 5)
                     .frame(width: 96, height: 90)
-                Image(systemName: "play.fill")
-                    .font(.system(size: 34, weight: .bold))
-                    .foregroundStyle(.white)
+                if viewModel.isPlaying{
+                    Image(systemName: "pause.fill")
+                        .font(.system(size: 34, weight: .bold))
+                        .foregroundStyle(.white)
+                }else {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 34, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+                
             }
         }
         .buttonStyle(.plain)
