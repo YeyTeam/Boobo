@@ -12,6 +12,8 @@ struct SoundView: View {
     @State private var vWater:   Double = 0.55
     @State private var vBirds:   Double = 0.60
     
+    @EnvironmentObject var routeManager: RouteManager
+    
 
     // Selection state for chips (pure UI for now)
     @State private var selected: Set<String> = ["waterfall", "birds"]
@@ -162,7 +164,8 @@ private struct VerticalFader: View {
                     }
             )
         }
-        .frame(width: 70, height: 260)
+        .frame(width: 70, height: 210)
+        .padding(.vertical, 10)
     }
 }
 
@@ -197,7 +200,7 @@ private struct Chip: View {
                 Image(systemName: system)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(isOn ? .black : .white)
-                    .frame(width: 58, height: 58)
+                    .frame(width: 50, height: 50)
                     .background(Circle().fill(isOn
                         ? Color(red: 0.92, green: 0.80, blue: 0.50)
                         : .white.opacity(0.16)))
@@ -209,7 +212,7 @@ private struct Chip: View {
             }
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 2)
+        .padding(.horizontal, 0)
     }
 }
 
@@ -255,7 +258,7 @@ private struct PlayButton: View {
         } label: {
             ZStack {
                 Circle().stroke(.white.opacity(0.9), lineWidth: 5)
-                    .frame(width: 96, height: 96)
+                    .frame(width: 96, height: 90)
                 Image(systemName: "play.fill")
                     .font(.system(size: 34, weight: .bold))
                     .foregroundStyle(.white)
@@ -266,8 +269,12 @@ private struct PlayButton: View {
 }
 
 private struct StartSessionBar: View {
+    @EnvironmentObject var routeManager: RouteManager
+    
     var body: some View {
-        Button {} label: {
+        Button {
+            routeManager.navigate(to: .sleepTime)
+        } label: {
             HStack {
                 Text("Start sleep session")
                     .font(.headline)

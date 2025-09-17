@@ -34,7 +34,7 @@ class OnBoardingViewModel : ObservableObject {
     func nextPage(){
         pageIndex += 1
         if pageIndex == 4 {
-            self.routeManager?.navigate(to: .home)
+            self.routeManager?.resetRoot()
         }
         pageIndex = max(0, min(pageIndex, 3))
         print("Page Index : \(pageIndex)")
