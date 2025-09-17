@@ -23,11 +23,11 @@ class HomeViewModel: ObservableObject {
     func getContent(index : Int) -> some View {
         switch index {
         case 0:
-            return AnyView(SoundPlay())
+            return AnyView(SoundView())
         case 1:
             return AnyView(BedtimeView())
         default:
-            return AnyView(SleepHygieneView())
+            return AnyView(StreakView())
         }
     }
     

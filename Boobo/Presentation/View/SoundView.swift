@@ -11,18 +11,12 @@ struct SoundView: View {
     @State private var vThunder: Double = 0.75
     @State private var vWater:   Double = 0.55
     @State private var vBirds:   Double = 0.60
+    
 
     // Selection state for chips (pure UI for now)
     @State private var selected: Set<String> = ["waterfall", "birds"]
 
     var body: some View {
-        ZStack(alignment: .top) {
-            // Background image behind everything
-            Image("BackgroundA")
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-
             // Foreground content
             VStack(spacing: 5) {
                 header
@@ -33,8 +27,14 @@ struct SoundView: View {
                 startSessionBar
             }
             .padding(.horizontal, 20)
-            .padding(.top, 50) // distance from top like the mock
-        }
+            .frame(maxHeight : .infinity)
+            .background(
+                Image("BackgroundA")
+                    .resizable()
+                    .scaledToFill()
+            )
+            .ignoresSafeArea(.all)
+            
     }
 
     // MARK: - Header
@@ -243,8 +243,16 @@ private struct ActionCircleButton: View {
 }
 
 private struct PlayButton: View {
+    var audioPlayer: AudioPlayerManager = AudioPlayerManager()
+
     var body: some View {
-        Button {} label: {
+        Button {
+            do {
+                try audioPlayer.playSounds(sounds : ["rain_sound","thunderstorm"])
+            }catch{
+                print("Error \(error.localizedDescription)")
+            }
+        } label: {
             ZStack {
                 Circle().stroke(.white.opacity(0.9), lineWidth: 5)
                     .frame(width: 96, height: 96)

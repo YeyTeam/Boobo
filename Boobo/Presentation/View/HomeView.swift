@@ -20,14 +20,16 @@ struct HomeView: View {
             
         }
         .onAppear(){
-            let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
-            let blurBackground = UIVisualEffectView(effect: blurEffect)
-
-            UITabBar.appearance().standardAppearance.backgroundEffect = blurBackground.effect as? UIBlurEffect
-            UITabBar.appearance().barTintColor = UIColor.white
-            UITabBar.appearance().unselectedItemTintColor = UIColor.black
-            UITabBar.appearance().backgroundColor = UIColor.white.withAlphaComponent(0.2)
             
+            let blurEffect = UIBlurEffect(style: .light)
+            let appearance = UITabBarAppearance()
+            appearance.configureWithTransparentBackground()
+            appearance.backgroundEffect = blurEffect
+            UITabBar.appearance().tintColor = UIColor.white
+            UITabBar.appearance().unselectedItemTintColor = UIColor.white
+            UITabBar.appearance().backgroundColor = UIColor.white.withAlphaComponent(0.1)
+            
+
         }
 
     }
