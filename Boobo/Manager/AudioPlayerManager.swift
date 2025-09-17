@@ -37,8 +37,11 @@ class AudioPlayerManager : ObservableObject{
                 // Set gain di mixer node
                 mixerNode.outputVolume = Float(sound.volume) // gain dalam range 0.0 - 1.0
 
+                func schedule() {
+                   playerNode.scheduleFile(file, at: nil, completionHandler: schedule) // rekursif
+                }
                 // Schedule file untuk player node
-                playerNode.scheduleFile(file, at: nil, completionHandler: nil)
+                schedule()
                 
             } catch {
                 print("Error loading \(sound): \(error)")
