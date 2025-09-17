@@ -10,15 +10,20 @@ import SwiftData
 
 struct ContentView: View {
     @EnvironmentObject var router: RouteManager
+    
 //    @EnvironmentObject var sessionManager: SessionManager
     
     var body: some View {
         NavigationStack(path: $router.mainPath) {
-            OnBoardingView()
+            HomeView()
             .navigationDestination(for: MainRouter.self) {
                 route in
                 router.getContent(route: route)
             }
+        }
+        .onAppear {
+            router.resetRoot()
+            router.navigate(to: .onboarding)
         }
     }
 }
