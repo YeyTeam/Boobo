@@ -42,9 +42,11 @@ struct SoundView: View {
         // Present sheet here (the parent view)
         .sheet(isPresented: $showingAddMix) {
             AddMixSheetView(name: $draftMixName) { name in
-                // TODO: save with SwiftData later if you want
-                // saveMix(name)
-                showingAddMix = false
+                // TODO: Persist using your chosen approach:
+                // Option A: Creation on the model (factory)
+                // try? MixModel.createMix(in: modelContext, name: name)
+                // Option B: Delegate to MixManager API you maintain
+                // try? MixManager().createMix(context: modelContext, name: name)
             }
             .presentationDetents([.fraction(0.36)])
             .presentationCornerRadius(24)
@@ -330,17 +332,18 @@ private struct StartSessionBar: View {
 // This extension satisfies the call site in `PlayButton`.
 // Replace with your real implementation or remove once
 // `AudioPlayerManager` gains a matching API.
-extension AudioPlayerManager {
-    enum PlaybackError: Error { case assetNotFound }
+//extension AudioPlayerManager {
+//    enum PlaybackError: Error { case assetNotFound }
+//
+//    /// Plays multiple bundled audio assets by name.
+//    /// - Parameter sounds: Array of resource names (without extension).
+//    /// - Throws: `PlaybackError` or underlying audio errors in your real impl.
+//    func playSounds(sounds: [String]) throws {
+//        // TODO: Wire up to your actual audio engine.
+//        // This no-op implementation unblocks compilation.
+//        #if DEBUG
+//        print("[AudioPlayerManager] playSounds called with: \(sounds)")
+//        #endif
+//    }
+//}
 
-    /// Plays multiple bundled audio assets by name.
-    /// - Parameter sounds: Array of resource names (without extension).
-    /// - Throws: `PlaybackError` or underlying audio errors in your real impl.
-    func playSounds(sounds: [String]) throws {
-        // TODO: Wire up to your actual audio engine.
-        // This no-op implementation unblocks compilation.
-        #if DEBUG
-        print("[AudioPlayerManager] playSounds called with: \(sounds)")
-        #endif
-    }
-}
