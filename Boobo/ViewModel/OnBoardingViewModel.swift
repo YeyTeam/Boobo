@@ -10,6 +10,7 @@ import SwiftUI
 class OnBoardingViewModel : ObservableObject {
     @Published var pageIndex : Int
     @Published var routeManager : RouteManager?
+    var notificationManager : NotificationManager?
     
     init() {
         self.pageIndex = 0
@@ -36,6 +37,7 @@ class OnBoardingViewModel : ObservableObject {
         if pageIndex == 4 {
             self.routeManager?.resetRoot()
         }
+       
         pageIndex = max(0, min(pageIndex, 3))
         print("Page Index : \(pageIndex)")
     }

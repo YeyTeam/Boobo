@@ -10,17 +10,18 @@ import SwiftUI
 
 struct OnBoarding3:View {
     var viewModel:OnBoardingViewModel?
+    var notificationManager:NotificationManager?
     
     var body: some View {
         VStack{
             
-            Text("Limit the apps that keep you awake, so you can fall asleep more quickly.")
+            Text("Get Notified!.")
                 .foregroundStyle(.white)
                 .font(.title.bold())
                 .multilineTextAlignment(.center)
                 .padding(.vertical, 10)
             
-            Text("Tap Open Settings. We suggest you to choose ‘All apps & categories’ to get the best sleep results.")
+            Text("Better sleep starts with routine. We’ll remind you before bedtime to play your sounds, helping you unwind and fall asleep faster.")
                 .foregroundStyle(.white)
                 .font(.headline)
                 .multilineTextAlignment(.center)
@@ -29,16 +30,16 @@ struct OnBoarding3:View {
                 
             Spacer()
             
-            Image("ChooseApp")
+            Image("Notification")
                 .resizable()
-                .frame(height: 120)
+                .frame(width : 180, height: 180)
                 .padding()
             
             Spacer()
-            Spacer()
-            Spacer()
             
             PrimaryButton(text : "Get Started"){
+                notificationManager?.requestPermission()
+
                 viewModel?.nextPage()
             }
             
@@ -59,5 +60,7 @@ struct OnBoarding3:View {
 }
 
 #Preview{
+    var routeManager: RouteManager = .init()
     OnBoardingView()
+        .environmentObject(routeManager)
 }

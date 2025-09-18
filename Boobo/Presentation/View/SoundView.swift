@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct SoundView: View {
-    // Fake volumes just for the visual slice
+    // Volumes (demo)
     @State private var vThunder: Double = 0.75
     @State private var vWater:   Double = 0.55
     @State private var vBirds:   Double = 0.60
@@ -16,11 +16,24 @@ struct SoundView: View {
     
     @StateObject var viewModel: SoundViewModel = SoundViewModel()
     // Selection state for chips (pure UI for now)
+
     @State private var selected: Set<String> = ["waterfall", "birds"]
     
     @State private var isFavoriteSheetOpen: Bool = false
 
+    // SHEET STATE (must be inside the view)
+    @State private var showingAddMix = false
+    @State private var draftMixName = ""
+
     var body: some View {
+
+        ZStack(alignment: .top) {
+            // Background behind everything
+            Image("BackgroundA") // ensure the asset is named exactly like this
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+
             // Foreground content
             VStack(spacing: 5) {
                 header
@@ -38,12 +51,29 @@ struct SoundView: View {
                     .scaledToFill()
             )
             .ignoresSafeArea(.all)
+<<<<<<< HEAD
             .sheet(isPresented: $isFavoriteSheetOpen) {
                 FavoriteSheet(isFavoriteSheetOpen: $isFavoriteSheetOpen)
                     .presentationDetents([.medium])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(.thinMaterial)
             }
+=======
+            
+            .frame(maxHeight: .infinity)
+        }
+        // Present sheet here (the parent view)
+        .sheet(isPresented: $showingAddMix) {
+            AddMixSheetView(name: $draftMixName) { name in
+                // TODO: save with SwiftData later if you want
+                // saveMix(name)
+                showingAddMix = false
+            }
+            .presentationDetents([.fraction(0.36)])
+            .presentationCornerRadius(24)
+            .presentationDragIndicator(.hidden)
+        }
+>>>>>>> d0c1904bc06dd511545fe9ee7a82a7bd48a3d682
     }
 
     // MARK: - Header
@@ -75,7 +105,7 @@ struct SoundView: View {
                             viewModel.updateVolume(index: value, volume: Float(newValue))
                         }
                 }else{
-                    VerticalFader(value: .constant(0.5), symbol: "plus.circle")
+                    VerticalFader(value: .constant(0.5), symbol: "music.note")
                     
                 }
             }
@@ -103,7 +133,7 @@ struct SoundView: View {
         .background(Color.black.opacity(0.18))
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .padding(.top, 6)
-        // override parent’s .padding(.horizontal, 20)
+        // let the strip extend to the edges despite parent padding
         .padding(.horizontal, -20)
     }
 
@@ -115,12 +145,17 @@ struct SoundView: View {
         }
     }
 
-    // MARK: - Controls (timer, big play, plus)
+    // MARK: - Controls (timer, big play, save-mix)
     private var controls: some View {
         HStack(spacing: 42) {
             ActionCircleButton(systemName: "timer")
             PlayButton(viewModel: viewModel)
-            ActionCircleButton(systemName: "plus")
+            
+            // NEW: SaveMixButton replaces the "+" circle
+            SaveMixButton {
+                draftMixName = ""
+                showingAddMix = true
+            }
         }
         .padding(.top, 4)
     }
@@ -136,6 +171,56 @@ struct SoundView: View {
 // Components
 // ==========================================================
 
+<<<<<<< HEAD
+=======
+//
+//<<<<<<< HEAD
+//=======
+//    var body: some View {
+//        GeometryReader { geo in
+//            let height = geo.size.height
+//
+//            ZStack(alignment: .bottom) {
+//                // Track (thin)
+//                RoundedRectangle(cornerRadius: 18)
+//                    .fill(Color.black.opacity(0.28))
+//                    .frame(width: 20)
+//                    .overlay(
+//                        RoundedRectangle(cornerRadius: 18)
+//                            .stroke(.white.opacity(0.12), lineWidth: 1)
+//                    )
+//
+//                // Fill
+//                RoundedRectangle(cornerRadius: 18)
+//                    .fill(Color.white.opacity(0.15))
+//                    .frame(width: 20, height: height * value)
+//
+//                // Knob
+//                Image(systemName: symbol)
+//                    .font(.system(size: 20, weight: .semibold))
+//                    .foregroundStyle(.black)
+//                    .frame(width: 56, height: 56)
+//                    .background(Circle().fill(Color(red: 0.92, green: 0.80, blue: 0.50)))
+//                    .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 2))
+//                    .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
+//                    .offset(y: -(height - 56) * value)
+//            }
+//            .gesture(
+//                DragGesture(minimumDistance: 0)
+//                    .onChanged { g in
+//                        // Clamp value between 0 and 1
+//                        let clamped = max(0, min(height, height - g.location.y))
+//                        value = clamped / height
+//                    }
+//            )
+//        }
+//        .frame(width: 70, height: 210)
+//        .padding(.vertical, 10)
+//    }
+//}
+//>>>>>>> c57086e3a1327dc0a0fd844733fe3d761a4ba433
+
+>>>>>>> d0c1904bc06dd511545fe9ee7a82a7bd48a3d682
 private struct HeartButton: View {
     var body: some View {
         Button {} label: {
@@ -203,10 +288,13 @@ private struct MenuButton: View {
     }
 }
 
+// keep the generic circle for "timer"
 private struct ActionCircleButton: View {
     let systemName: String
+    var action: () -> Void = {}
+
     var body: some View {
-        Button {} label: {
+        Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.white)
@@ -214,6 +302,23 @@ private struct ActionCircleButton: View {
                 .overlay(Circle().stroke(.white.opacity(0.85), lineWidth: 3))
         }
         .buttonStyle(.plain)
+    }
+}
+
+
+private struct SaveMixButton: View {
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "plus")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 54, height: 54)
+                .overlay(Circle().stroke(.white.opacity(0.85), lineWidth: 3))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Save mix")
     }
 }
 
@@ -273,6 +378,23 @@ private struct StartSessionBar: View {
     }
 }
 
-#Preview {
-    SoundView()
-}
+#Preview { SoundView() }
+
+//// MARK: - Temporary shim to fix missing API
+//// This extension satisfies the call site in `PlayButton`.
+//// Replace with your real implementation or remove once
+//// `AudioPlayerManager` gains a matching API.
+//extension AudioPlayerManager {
+//    enum PlaybackError: Error { case assetNotFound }
+//
+//    /// Plays multiple bundled audio assets by name.
+//    /// - Parameter sounds: Array of resource names (without extension).
+//    /// - Throws: `PlaybackError` or underlying audio errors in your real impl.
+//    func playSounds(sounds: [String]) throws {
+//        // TODO: Wire up to your actual audio engine.
+//        // This no-op implementation unblocks compilation.
+//        #if DEBUG
+//        print("[AudioPlayerManager] playSounds called with: \(sounds)")
+//        #endif
+//    }
+//}
