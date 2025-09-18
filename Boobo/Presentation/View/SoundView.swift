@@ -17,6 +17,8 @@ struct SoundView: View {
     @StateObject var viewModel: SoundViewModel = SoundViewModel()
     // Selection state for chips (pure UI for now)
     @State private var selected: Set<String> = ["waterfall", "birds"]
+    
+    @State private var isFavoriteSheetOpen: Bool = false
 
     var body: some View {
             // Foreground content
@@ -36,7 +38,12 @@ struct SoundView: View {
                     .scaledToFill()
             )
             .ignoresSafeArea(.all)
-            
+            .sheet(isPresented: $isFavoriteSheetOpen) {
+                FavoriteSheet(isFavoriteSheetOpen: $isFavoriteSheetOpen)
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
+                    .presentationBackground(.thinMaterial)
+            }
     }
 
     // MARK: - Header
@@ -104,7 +111,7 @@ struct SoundView: View {
     private var menuRow: some View {
         HStack {
             Spacer()
-            MenuButton()
+            MenuButton(isFavoriteSheetOpen: $isFavoriteSheetOpen)
         }
     }
 
@@ -128,8 +135,6 @@ struct SoundView: View {
 // ==========================================================
 // Components
 // ==========================================================
-
-
 
 private struct HeartButton: View {
     var body: some View {
@@ -180,8 +185,12 @@ private struct Chip: View {
 }
 
 private struct MenuButton: View {
+    @Binding var isFavoriteSheetOpen: Bool
+    
     var body: some View {
-        Button {} label: {
+        Button {
+            isFavoriteSheetOpen.toggle()
+        } label: {
             Image(systemName: "line.3.horizontal")
                 .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(.white)
