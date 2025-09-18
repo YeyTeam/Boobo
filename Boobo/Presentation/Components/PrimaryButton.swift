@@ -21,7 +21,7 @@ struct PrimaryButton: View {
                 .padding(.horizontal , 20)
                 .font(.title2)
                 .background(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 10)
                         .fill(Color.buttonPrimary)
                 )
             

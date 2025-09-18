@@ -10,10 +10,13 @@ import SwiftUI
 
 struct OnBoarding2:View {
     var viewModel: OnBoardingViewModel?
+    @State var selectedTime: Date = Date()
+    var sleepTime: Date {
+        Calendar.current.date(byAdding: .hour, value: -8, to: selectedTime) ?? selectedTime
+    }
     
     var body: some View {
         VStack{
-            Spacer()
             
             Text("Your wake up time")
                 .foregroundStyle(.white)
@@ -28,11 +31,16 @@ struct OnBoarding2:View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 30)
             
-                
+            Spacer()
             Spacer()
             
-            TimePicker()
+            //TimePicker()
+            DatePicker("Pilih Jam", selection: $selectedTime, displayedComponents: .hourAndMinute)
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+                .colorScheme(.dark)
             
+        
             Spacer()
             Spacer()
             
@@ -48,5 +56,7 @@ struct OnBoarding2:View {
 }
 
 #Preview{
+    var routeManager: RouteManager = .init()
     OnBoardingView()
+        .environmentObject(routeManager)
 }

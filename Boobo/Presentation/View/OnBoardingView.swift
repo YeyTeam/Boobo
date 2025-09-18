@@ -24,5 +24,7 @@ struct OnBoardingView: View {
 }
 
 #Preview{
+    var RouteManager:RouteManager = RouteManager()
     OnBoardingView()
+        .environmentObject(RouteManager)
 }
