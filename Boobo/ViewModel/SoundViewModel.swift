@@ -63,7 +63,7 @@ class SoundViewModel:ObservableObject {
         } else {
         }
 
-        if self.sounds.count <= 3{
+        if self.sounds.count < 3{
             self.sounds.append(sound)
             self.play()
             return true
