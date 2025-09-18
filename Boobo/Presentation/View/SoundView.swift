@@ -7,18 +7,22 @@
 import SwiftUI
 
 struct SoundView: View {
-    // Fake volumes just for the visual slice
+    // Volumes (demo)
     @State private var vThunder: Double = 0.75
     @State private var vWater:   Double = 0.55
     @State private var vBirds:   Double = 0.60
 
-    // Selection state for chips (pure UI for now)
+    // Chips
     @State private var selected: Set<String> = ["waterfall", "birds"]
+
+    // SHEET STATE (must be inside the view)
+    @State private var showingAddMix = false
+    @State private var draftMixName = ""
 
     var body: some View {
         ZStack(alignment: .top) {
-            // Background image behind everything
-            Image("BackgroundA")
+            // Background behind everything
+            Image("BackgroundA") // ensure the asset is named exactly like this
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
@@ -33,7 +37,18 @@ struct SoundView: View {
                 startSessionBar
             }
             .padding(.horizontal, 20)
-            .padding(.top, 50) // distance from top like the mock
+            .frame(maxHeight: .infinity)
+        }
+        // Present sheet here (the parent view)
+        .sheet(isPresented: $showingAddMix) {
+            AddMixSheetView(name: $draftMixName) { name in
+                // TODO: save with SwiftData later if you want
+                // saveMix(name)
+                showingAddMix = false
+            }
+            .presentationDetents([.fraction(0.36)])
+            .presentationCornerRadius(24)
+            .presentationDragIndicator(.hidden)
         }
     }
 
@@ -86,7 +101,7 @@ struct SoundView: View {
         .background(Color.black.opacity(0.18))
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .padding(.top, 6)
-        // override parent’s .padding(.horizontal, 20)
+        // let the strip extend to the edges despite parent padding
         .padding(.horizontal, -20)
     }
 
@@ -98,12 +113,16 @@ struct SoundView: View {
         }
     }
 
-    // MARK: - Controls (timer, big play, plus)
+    // MARK: - Controls (timer, big play, save-mix)
     private var controls: some View {
         HStack(spacing: 42) {
-            ActionCircleButton(systemName: "timer")
+            ActionCircleButton(systemName: "timer") // unchanged
             PlayButton()
-            ActionCircleButton(systemName: "plus")
+            // NEW: SaveMixButton replaces the "+" circle
+            SaveMixButton {
+                draftMixName = ""
+                showingAddMix = true
+            }
         }
         .padding(.top, 4)
     }
@@ -128,7 +147,7 @@ private struct VerticalFader: View {
             let height = geo.size.height
 
             ZStack(alignment: .bottom) {
-                // Track
+                // Track (thin)
                 RoundedRectangle(cornerRadius: 18)
                     .fill(Color.black.opacity(0.28))
                     .frame(width: 20)
@@ -140,8 +159,7 @@ private struct VerticalFader: View {
                 // Fill
                 RoundedRectangle(cornerRadius: 18)
                     .fill(Color.white.opacity(0.15))
-                    .frame(width: 20)
-                    .frame(height: height * value)
+                    .frame(width: 20, height: height * value)
 
                 // Knob
                 Image(systemName: symbol)
@@ -149,7 +167,7 @@ private struct VerticalFader: View {
                     .foregroundStyle(.black)
                     .frame(width: 56, height: 56)
                     .background(Circle().fill(Color(red: 0.92, green: 0.80, blue: 0.50)))
-                    .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 10))
+                    .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 2))
                     .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
                     .offset(y: -(height - 56) * value)
             }
@@ -228,10 +246,13 @@ private struct MenuButton: View {
     }
 }
 
+// keep the generic circle for "timer"
 private struct ActionCircleButton: View {
     let systemName: String
+    var action: () -> Void = {}
+
     var body: some View {
-        Button {} label: {
+        Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.white)
@@ -242,9 +263,30 @@ private struct ActionCircleButton: View {
     }
 }
 
-private struct PlayButton: View {
+private struct SaveMixButton: View {
+    var action: () -> Void
+
     var body: some View {
-        Button {} label: {
+        Button(action: action) {
+            Image(systemName: "plus")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 54, height: 54)
+                .overlay(Circle().stroke(.white.opacity(0.85), lineWidth: 3))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Save mix")
+    }
+}
+
+private struct PlayButton: View {
+    var audioPlayer: AudioPlayerManager = AudioPlayerManager()
+
+    var body: some View {
+        Button {
+            do { try audioPlayer.playSounds(sounds: ["rain_sound","thunderstorm"]) }
+            catch { print("Error \(error.localizedDescription)") }
+        } label: {
             ZStack {
                 Circle().stroke(.white.opacity(0.9), lineWidth: 5)
                     .frame(width: 96, height: 96)
@@ -282,6 +324,23 @@ private struct StartSessionBar: View {
     }
 }
 
-#Preview {
-    SoundView()
+#Preview { SoundView() }
+
+// MARK: - Temporary shim to fix missing API
+// This extension satisfies the call site in `PlayButton`.
+// Replace with your real implementation or remove once
+// `AudioPlayerManager` gains a matching API.
+extension AudioPlayerManager {
+    enum PlaybackError: Error { case assetNotFound }
+
+    /// Plays multiple bundled audio assets by name.
+    /// - Parameter sounds: Array of resource names (without extension).
+    /// - Throws: `PlaybackError` or underlying audio errors in your real impl.
+    func playSounds(sounds: [String]) throws {
+        // TODO: Wire up to your actual audio engine.
+        // This no-op implementation unblocks compilation.
+        #if DEBUG
+        print("[AudioPlayerManager] playSounds called with: \(sounds)")
+        #endif
+    }
 }
