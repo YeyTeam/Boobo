@@ -8,15 +8,11 @@
 import SwiftUI
 
 struct SoundPlay:View {
-    var audioPlayer: AudioPlayerManager = AudioPlayerManager()
+    var audioPlayer:     AudioPlayerManager = AudioPlayerManager()
     var body: some View {
         VStack{
             PrimaryButton(text : "Play Sound"){
-                do {
-                    try audioPlayer.playSounds(sounds : ["rain_sound","thunderstorm"])
-                }catch{
-                    print("Error \(error.localizedDescription)")
-                }
+                
             }
         }
         .background(Image("BackgroundA"))
