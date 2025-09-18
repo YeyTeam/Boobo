@@ -94,7 +94,7 @@ struct SoundView: View {
                             viewModel.updateVolume(index: value, volume: Float(newValue))
                         }
                 }else{
-                    VerticalFader(value: .constant(0.5), symbol: "plus.circle")
+                    VerticalFader(value: .constant(0.5), symbol: "music.note")
                     
                 }
             }

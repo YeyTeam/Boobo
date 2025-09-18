@@ -10,6 +10,7 @@ import SwiftUI
 
 struct OnBoarding3:View {
     var viewModel:OnBoardingViewModel?
+    var notificationManager:NotificationManager?
     
     var body: some View {
         VStack{
@@ -37,6 +38,8 @@ struct OnBoarding3:View {
             Spacer()
             
             PrimaryButton(text : "Get Started"){
+                notificationManager?.requestPermission()
+
                 viewModel?.nextPage()
             }
             
