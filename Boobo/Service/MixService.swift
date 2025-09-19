@@ -8,7 +8,7 @@
 import SwiftData
 import SwiftUI
 
-class MixManager{
+class MixService{
     let swiftDataService = SwiftDataService()
     
     //Fungsi untuk ambil data mix dari database

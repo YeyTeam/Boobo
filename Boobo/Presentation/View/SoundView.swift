@@ -18,6 +18,8 @@ struct SoundView: View {
     // Selection state for chips (pure UI for now)
 
     @State private var selected: Set<String> = ["waterfall", "birds"]
+    
+    @State private var isFavoriteSheetOpen: Bool = false
 
     // SHEET STATE (must be inside the view)
     @State private var showingAddMix = false
@@ -49,6 +51,14 @@ struct SoundView: View {
                     .scaledToFill()
             )
             .ignoresSafeArea(.all)
+<<<<<<< HEAD
+            .sheet(isPresented: $isFavoriteSheetOpen) {
+                FavoriteSheet(isFavoriteSheetOpen: $isFavoriteSheetOpen)
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
+                    .presentationBackground(.thinMaterial)
+            }
+=======
             
             .frame(maxHeight: .infinity)
         }
@@ -63,6 +73,7 @@ struct SoundView: View {
             .presentationCornerRadius(24)
             .presentationDragIndicator(.hidden)
         }
+>>>>>>> d0c1904bc06dd511545fe9ee7a82a7bd48a3d682
     }
 
     // MARK: - Header
@@ -130,7 +141,7 @@ struct SoundView: View {
     private var menuRow: some View {
         HStack {
             Spacer()
-            MenuButton()
+            MenuButton(isFavoriteSheetOpen: $isFavoriteSheetOpen)
         }
     }
 
@@ -160,6 +171,8 @@ struct SoundView: View {
 // Components
 // ==========================================================
 
+<<<<<<< HEAD
+=======
 //
 //<<<<<<< HEAD
 //=======
@@ -207,6 +220,7 @@ struct SoundView: View {
 //}
 //>>>>>>> c57086e3a1327dc0a0fd844733fe3d761a4ba433
 
+>>>>>>> d0c1904bc06dd511545fe9ee7a82a7bd48a3d682
 private struct HeartButton: View {
     var body: some View {
         Button {} label: {
@@ -256,8 +270,12 @@ private struct Chip: View {
 }
 
 private struct MenuButton: View {
+    @Binding var isFavoriteSheetOpen: Bool
+    
     var body: some View {
-        Button {} label: {
+        Button {
+            isFavoriteSheetOpen.toggle()
+        } label: {
             Image(systemName: "line.3.horizontal")
                 .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(.white)
