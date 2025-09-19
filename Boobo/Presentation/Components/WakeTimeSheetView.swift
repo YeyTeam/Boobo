@@ -1,10 +1,8 @@
-
-//
 //  WakeTimeSheetView.swift
 //  Boobo
 //
 //  Created by Abdul Jabbar on 18/09/25.
-//
+
 
 import SwiftUI
 
@@ -12,132 +10,171 @@ struct WakeTimeSheetView: View {
     @Binding var wakeHour: Int
     @Binding var wakeMinute: Int
     var onSave: (_ wakeHour: Int, _ wakeMinute: Int, _ sleepHour: Int, _ sleepMinute: Int) -> Void
-    
-    // MARK: - Sleep time auto-calc
+
+    @Environment(\.dismiss) private var dismiss
+
+    // Brand gold used across the app
+    private let gold = Color(red: 0.98, green: 0.86, blue: 0.47)
+
+    // Sleep = wake - 8h (wrap across midnight)
     private var sleepTime: (hour: Int, minute: Int) {
-        var h = wakeHour - 8
-        if h < 0 { h += 24 }
-        return (h, wakeMinute)
+        let t = (wakeHour * 60 + wakeMinute - 8 * 60 + 24 * 60) % (24 * 60)
+        return (t / 60, t % 60)
     }
-    
+
     var body: some View {
-        VStack(spacing: 20) {
-            // Header with title + close
-            HStack {
-                Spacer()
-                Text("Wake up Time")
-                    .font(.title2.bold())
-                    .foregroundStyle(.white)
-                Spacer()
-                Button {
-                    // dismiss is handled by parent
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 24))
-                        .foregroundStyle(.white.opacity(0.8))
-                }
-            }
-            
-            // Time cards
-            HStack(spacing: 24) {
-                VStack(spacing: 6) {
-                    Label("WAKE UP", systemImage: "sun.max.fill")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.8))
-                    Text("\(two(wakeHour)).\(two(wakeMinute))")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundStyle(.yellow)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(.white.opacity(0.15))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                VStack(spacing: 6) {
-                    Label("SLEEP", systemImage: "moon.zzz.fill")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.8))
-                    Text("\(two(sleepTime.hour)).\(two(sleepTime.minute))")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundStyle(.yellow)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(.white.opacity(0.15))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .padding(.horizontal)
-            
-            // Time pickers
-            HStack(spacing: 0) {
-                Picker("Hour", selection: $wakeHour) {
-                    ForEach(0..<24, id: \.self) { h in
-                        Text(two(h))
-                            .font(.system(size: 28, weight: .semibold))
-                            .foregroundStyle(h == wakeHour ? .yellow : .white.opacity(0.6))
-                            .frame(maxWidth: .infinity)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .clipped()
-                .labelsHidden()
-                
-                Picker("Minute", selection: $wakeMinute) {
-                    ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { m in
-                        Text(two(m))
-                            .font(.system(size: 28, weight: .semibold))
-                            .foregroundStyle(m == wakeMinute ? .yellow : .white.opacity(0.6))
-                            .frame(maxWidth: .infinity)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .clipped()
-                .labelsHidden()
-            }
-            .pickerStyle(.wheel)
-            .frame(height: 140)
-            
-            // Save button
-            Button {
-                onSave(wakeHour, wakeMinute, sleepTime.hour, sleepTime.minute)
-            } label: {
-                Text("Save")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(.white.opacity(0.85))
-                    .foregroundStyle(.black)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .padding(.horizontal)
-            }
-            
-            Spacer()
-        }
-        .padding(.vertical)
-        .background(
+        ZStack(alignment: .topTrailing) {
+            // Background gradient (kept from your last version)
             LinearGradient(
-                    gradient: Gradient(stops: [
-                        .init(color: Color(red: 90/255,  green: 134/255, blue: 179/255), location: 0.00), // top  ~#5A86B3
-                        .init(color: Color(red: 71/255,  green: 115/255, blue: 164/255), location: 0.35), // mid1 ~#4773A4
-                        .init(color: Color(red: 45/255,  green:  94/255, blue: 142/255), location: 0.70), // mid2 ~#2D5E8E
-                        .init(color: Color(red: 18/255,  green:  58/255, blue:  98/255), location: 1.00)  // bottom ~#123A62
-                    ]),
-                startPoint: .top,
-                endPoint: .bottom
+                gradient: Gradient(stops: [
+                    .init(color: Color(red: 90/255,  green: 134/255, blue: 179/255), location: 0.00),
+                    .init(color: Color(red: 71/255,  green: 115/255, blue: 164/255), location: 0.35),
+                    .init(color: Color(red: 45/255,  green:  94/255, blue: 142/255), location: 0.70),
+                    .init(color: Color(red: 18/255,  green:  58/255, blue:  98/255), location: 1.00)
+                ]),
+                startPoint: .top, endPoint: .bottom
             )
             .ignoresSafeArea()
-        )
-    }
-}
 
-// Helper
-private func two(_ n: Int) -> String {
-    String(format: "%02d", n)
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 18) {
+                    // Title row
+                    HStack {
+                        Spacer()
+                        Text("Wake up Time")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(.white)
+                        Spacer()
+                    }
+                    .padding(.top, 20)
+
+                    // Summary card (dark rounded)
+                    HStack(spacing: 0) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("WAKE UP", systemImage: "sun.max")
+                                .labelStyle(.titleAndIcon)
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundStyle(.white.opacity(0.85))
+                                .symbolVariant(.circle.fill)
+
+                            Text("\(two(wakeHour)).\(two(wakeMinute))")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundStyle(gold)
+                                .monospacedDigit()
+                        }
+                        Spacer(minLength: 12)
+                        VStack(alignment: .trailing, spacing: 8) {
+                            Label("SLEEP", systemImage: "moon.zzz")
+                                .labelStyle(.titleAndIcon)
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundStyle(.white.opacity(0.85))
+                                .symbolVariant(.fill)
+
+                            Text("\(two(sleepTime.hour)).\(two(sleepTime.minute))")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundStyle(.white)
+                                .monospacedDigit()
+                        }
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 16)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.black.opacity(0.28))
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .padding(.horizontal, 22)
+
+                    // Pickers with frosted capsule across the center row
+                    ZStack {
+                        // Wheel pickers
+                        HStack(spacing: 0) {
+                            Picker("Hour", selection: $wakeHour) {
+                                ForEach(0..<24, id: \.self) { h in
+                                    Text(two(h))
+                                        .font(.system(size: 28, weight: .semibold))
+                                        .foregroundStyle(wakeHour == h ? gold : .white.opacity(0.6))
+                                        .frame(maxWidth: .infinity)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.wheel)
+
+                            Picker("Minute", selection: $wakeMinute) {
+                                // 0..59 every minute; use stride(by: 5) if you want 5-min steps
+                                ForEach(0..<60, id: \.self) { m in
+                                    Text(two(m))
+                                        .font(.system(size: 28, weight: .semibold))
+                                        .foregroundStyle(wakeMinute == m ? gold : .white.opacity(0.6))
+                                        .frame(maxWidth: .infinity)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.wheel)
+                        }
+                        .padding(.horizontal, 32)
+                        .frame(height: 140)
+                        .clipped()
+
+                        // The frosted highlight band (center)
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .fill(Color.white.opacity(0.12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 28)
+                                    .stroke(Color.white.opacity(0.35), lineWidth: 1)
+                            )
+                            .frame(height: 56)
+                            .padding(.horizontal, 32)
+                    }
+                    .padding(.top, 6)
+
+                    // Save button (big pill)
+                    Button {
+                        onSave(wakeHour, wakeMinute, sleepTime.hour, sleepTime.minute)
+                        dismiss()
+                    } label: {
+                        Text("Save")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.black.opacity(0.9))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                LinearGradient(
+                                    colors: [.white, .white.opacity(0.86)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                )
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                            .shadow(color: .black.opacity(0.25), radius: 4, y: 1)
+                            .padding(.horizontal, 22)
+                    }
+                    .buttonStyle(.plain)
+
+                }
+                .padding(.top, 8)
+                .padding(.bottom, 16)
+            }
+
+            // Close (X)
+            Button { dismiss() } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .padding(.top, 10)
+                    .padding(.trailing, 14)
+            }
+        }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
+    }
+
+    private func two(_ n: Int) -> String { String(format: "%02d", n) }
 }
 
 #Preview {
-    WakeTimeSheetView(wakeHour: .constant(6), wakeMinute: .constant(0)) { wH, wM, sH, sM in
-        print("Saved wake \(wH):\(wM) sleep \(sH):\(sM)")
-    }
-    .presentationDetents([.fraction(0.4)])
+    WakeTimeSheetView(
+        wakeHour: .constant(6),
+        wakeMinute: .constant(0)
+    ) { _,_,_,_ in }
+    .presentationDetents([.fraction(0.45)])
+    .presentationCornerRadius(24)
+    .presentationDragIndicator(.hidden)
 }
+
