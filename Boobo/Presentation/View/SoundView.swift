@@ -58,11 +58,10 @@ struct SoundView: View {
         // Present sheet here (the parent view)
         .sheet(isPresented: $showingAddMix) {
             AddMixSheetView(name: $draftMixName) { name in
-                // TODO: Persist using your chosen approach:
-                // Option A: Creation on the model (factory)
-                // try? MixModel.createMix(in: modelContext, name: name)
-                // Option B: Delegate to MixManager API you maintain
-                // try? MixManager().createMix(context: modelContext, name: name)
+                // TODO: save with SwiftData later if you want
+//                 saveMix(name)
+                viewModel.addMixSound(name: name)
+                showingAddMix = false
             }
             .presentationDetents([.fraction(0.36)])
             .presentationCornerRadius(24)
