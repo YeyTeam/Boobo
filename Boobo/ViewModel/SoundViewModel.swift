@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftUICore
+import SwiftUI
 
 class SoundViewModel:ObservableObject {
     @ObservedObject var audioPlayerManager:AudioPlayerManager

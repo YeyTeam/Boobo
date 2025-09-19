@@ -55,8 +55,6 @@ struct SoundView: View {
         // Present sheet here (the parent view)
         .sheet(isPresented: $showingAddMix) {
             AddMixSheetView(name: $draftMixName) { name in
-                // TODO: save with SwiftData later if you want
-                // saveMix(name)
                 showingAddMix = false
             }
             .presentationDetents([.fraction(0.36)])
