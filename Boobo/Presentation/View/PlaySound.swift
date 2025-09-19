@@ -5,3 +5,166 @@
 //  Created by Davian on 18/09/25.
 //
 
+import SwiftUI
+
+struct PlaySound: View {
+    @Environment(\.dismiss) var dismiss   // untuk close / kembali
+    @State private var isPlaying = false  // state tombol play
+    @State private var showOverlay = false // state overlay
+    
+    var body: some View {
+        ZStack {
+            // Background
+            Image("BackgroundA")
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+            
+            VStack(spacing: 32) {
+                // Title and Close button
+                HStack {
+                    Spacer()
+                    Text("White Sound")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundStyle(.white)
+                    Spacer()
+                    
+                    Button(action: {
+                        dismiss() // kembali ke halaman sebelumnya (Home)
+                    }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.white)
+                            .padding(8)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 78)
+                
+                Spacer()
+                
+                // Sound Card
+                VStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.blue.opacity(0.6))
+                            .frame(width: 230, height: 230)
+                        
+                        // 3 icon overlapped
+                        ZStack {
+                            // Kiri
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white.opacity(0.3))
+                                    .frame(width: 90, height: 90)
+                                
+                                Image(systemName: "waveform")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 50, height: 50)
+                                    .foregroundColor(.white.opacity(0.4))
+                            }
+                            .offset(x: -50)
+                            
+                            // Tengah
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white.opacity(0.3))
+                                    .frame(width: 100, height: 100)
+                                
+                                Image(systemName: "cloud.rain.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 60, height: 60)
+                                    .foregroundColor(.white)
+                            }
+                            
+                            // Kanan
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white.opacity(0.3))
+                                    .frame(width: 90, height: 90)
+                                
+                                Image(systemName: "wind")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 50, height: 50)
+                                    .foregroundColor(.white.opacity(0.4))
+                            }
+                            .offset(x: 50)
+                        }
+                    }
+                    
+                    Text("Soundku")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                    
+                    Text("Rain, Waterfall, Birds")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.7))
+                }
+                
+                Spacer()
+                
+                // Play Button
+                Button(action: {
+                    if !isPlaying {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isPlaying = true
+                            showOverlay = true
+                        }
+                    }
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(isPlaying ? Color.gray : Color.yellow)
+                            .frame(width: 72, height: 72)
+                        
+                        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(.white)
+                    }
+                }
+                .disabled(isPlaying) // disable setelah jadi pause
+                
+                Spacer()
+            }
+            
+            // Overlay muncul setelah play ditekan
+            if showOverlay {
+                ZStack {
+                    Color.black.opacity(0.7).ignoresSafeArea()
+                    
+                    VStack(spacing: 20) {
+                        Image("flip phone")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 200, height: 200)
+                            .foregroundColor(.white)
+                        
+                        Text("Place your phone face down after pressing play")
+                            .font(.title3)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.white)
+                            .padding()
+                    }
+                }
+                .onTapGesture {
+                    withAnimation(.easeOut) {
+                        showOverlay = false
+                    }
+                }
+                .transition(.opacity)
+            }
+        }
+    }
+}
+
+struct PlaySound_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
+            PlaySound()
+        }
+        .preferredColorScheme(.dark)
+    }
+}
