@@ -51,14 +51,7 @@ struct SoundView: View {
                     .scaledToFill()
             )
             .ignoresSafeArea(.all)
-<<<<<<< HEAD
-            .sheet(isPresented: $isFavoriteSheetOpen) {
-                FavoriteSheet(isFavoriteSheetOpen: $isFavoriteSheetOpen)
-                    .presentationDetents([.medium])
-                    .presentationDragIndicator(.visible)
-                    .presentationBackground(.thinMaterial)
-            }
-=======
+
             
             .frame(maxHeight: .infinity)
         }
@@ -73,7 +66,6 @@ struct SoundView: View {
             .presentationCornerRadius(24)
             .presentationDragIndicator(.hidden)
         }
->>>>>>> d0c1904bc06dd511545fe9ee7a82a7bd48a3d682
     }
 
     // MARK: - Header
@@ -171,8 +163,7 @@ struct SoundView: View {
 // Components
 // ==========================================================
 
-<<<<<<< HEAD
-=======
+
 //
 //<<<<<<< HEAD
 //=======
@@ -220,7 +211,6 @@ struct SoundView: View {
 //}
 //>>>>>>> c57086e3a1327dc0a0fd844733fe3d761a4ba433
 
->>>>>>> d0c1904bc06dd511545fe9ee7a82a7bd48a3d682
 private struct HeartButton: View {
     var body: some View {
         Button {} label: {
