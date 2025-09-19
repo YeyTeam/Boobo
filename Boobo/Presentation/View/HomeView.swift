@@ -21,13 +21,18 @@ struct HomeView: View {
         }
         .onAppear(){
             
-            let blurEffect = UIBlurEffect(style: .light)
-            let appearance = UITabBarAppearance()
-            appearance.configureWithTransparentBackground()
-            appearance.backgroundEffect = blurEffect
-            UITabBar.appearance().tintColor = UIColor.white
-            UITabBar.appearance().unselectedItemTintColor = UIColor.white
-            UITabBar.appearance().backgroundColor = UIColor.white.withAlphaComponent(0.1)
+            if #available(iOS 26.0, *) {
+                
+            } else {
+                let blurEffect = UIBlurEffect(style: .light)
+                let appearance = UITabBarAppearance()
+                appearance.configureWithTransparentBackground()
+                appearance.backgroundEffect = blurEffect
+                UITabBar.appearance().tintColor = UIColor.white
+                UITabBar.appearance().unselectedItemTintColor = UIColor.white
+                UITabBar.appearance().backgroundColor = UIColor.white.withAlphaComponent(0.1)
+            }
+            
             
 
         }
@@ -37,5 +42,7 @@ struct HomeView: View {
 
 
 #Preview {
+    var routeManager = RouteManager()
     HomeView()
+        .environmentObject(routeManager)
 }

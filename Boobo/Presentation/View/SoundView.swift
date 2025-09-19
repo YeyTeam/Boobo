@@ -338,25 +338,40 @@ private struct StartSessionBar: View {
         Button {
             routeManager.navigate(to: .sleepTime)
         } label: {
-            HStack {
-                Text("Start sleep session")
-                    .font(.headline)
-                    .foregroundStyle(.white.opacity(0.98))
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(.white.opacity(0.98))
-            }
-            .padding()
-            .background(
-                LinearGradient(
-                    colors: [Color.white.opacity(0.18), Color.blue.opacity(0.28)],
-                    startPoint: .leading, endPoint: .trailing
+            if #available(iOS 26.0, *) {
+                HStack {
+                    Text("Start sleep session")
+                        .font(.headline)
+                        .foregroundStyle(.white.opacity(0.98))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.white.opacity(0.98))
+                }
+                .padding()
+                .cornerRadius(14)
+                .glassEffect(.regular.tint(.white.opacity(0.05)), in : .rect(cornerRadius: 14))
+            } else {
+                HStack {
+                    Text("Start sleep session")
+                        .font(.headline)
+                        .foregroundStyle(.white.opacity(0.98))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.white.opacity(0.98))
+                }
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.18), Color.blue.opacity(0.28)],
+                        startPoint: .leading, endPoint: .trailing
+                    )
                 )
-            )
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.25)))
-            .cornerRadius(14)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.25)))
+                .cornerRadius(14)
+            }
         }
-        .buttonStyle(.plain)
+        
+        
     }
 }
 
