@@ -59,7 +59,8 @@ struct SoundView: View {
         .sheet(isPresented: $showingAddMix) {
             AddMixSheetView(name: $draftMixName) { name in
                 // TODO: save with SwiftData later if you want
-                // saveMix(name)
+//                 saveMix(name)
+                viewModel.addMixSound(name: name)
                 showingAddMix = false
             }
             .presentationDetents([.fraction(0.36)])

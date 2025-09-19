@@ -82,4 +82,12 @@ class SoundViewModel:ObservableObject {
         self.sounds.remove(at:i )
     }
     
+    func addMixSound(name: String) {
+        print("addMixSound = \(name)")
+        
+        for sound in sounds {
+            print("Name: \(sound.name), url: \(sound.url), icon: \(sound.icon)")
+        }
+    }
+    
 }
