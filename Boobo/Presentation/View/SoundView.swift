@@ -386,10 +386,11 @@ private struct StartSessionBar: View {
 
 #Preview { SoundView() }
 
-//// MARK: - Temporary shim to fix missing API
-//// This extension satisfies the call site in `PlayButton`.
-//// Replace with your real implementation or remove once
-//// `AudioPlayerManager` gains a matching API.
+
+// MARK: - Temporary shim to fix missing API
+// This extension satisfies the call site in `PlayButton`.
+// Replace with your real implementation or remove once
+// `AudioPlayerManager` gains a matching API.
 //extension AudioPlayerManager {
 //    enum PlaybackError: Error { case assetNotFound }
 //

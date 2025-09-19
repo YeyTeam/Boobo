@@ -107,8 +107,8 @@ struct BedtimeView: View {
             .padding(.top, 28)
             Spacer()
         }
-        .padding(.top, 64)
-        .padding(.horizontal, 13)
+        .padding(.top, 70)
+        .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             Image("progress-bg")
