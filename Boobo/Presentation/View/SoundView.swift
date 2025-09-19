@@ -18,6 +18,8 @@ struct SoundView: View {
     // Selection state for chips (pure UI for now)
 
     @State private var selected: Set<String> = ["waterfall", "birds"]
+    
+    @State private var isFavoriteSheetOpen: Bool = false
 
     // SHEET STATE (must be inside the view)
     @State private var showingAddMix = false
@@ -49,6 +51,7 @@ struct SoundView: View {
                     .scaledToFill()
             )
             .ignoresSafeArea(.all)
+
             
             .frame(maxHeight: .infinity)
         }
@@ -56,7 +59,8 @@ struct SoundView: View {
         .sheet(isPresented: $showingAddMix) {
             AddMixSheetView(name: $draftMixName) { name in
                 // TODO: save with SwiftData later if you want
-                // saveMix(name)
+//                 saveMix(name)
+                viewModel.addMixSound(name: name)
                 showingAddMix = false
             }
             .presentationDetents([.fraction(0.36)])
@@ -130,7 +134,7 @@ struct SoundView: View {
     private var menuRow: some View {
         HStack {
             Spacer()
-            MenuButton()
+            MenuButton(isFavoriteSheetOpen: $isFavoriteSheetOpen)
         }
     }
 
@@ -159,6 +163,7 @@ struct SoundView: View {
 // ==========================================================
 // Components
 // ==========================================================
+
 
 //
 //<<<<<<< HEAD
@@ -256,8 +261,12 @@ private struct Chip: View {
 }
 
 private struct MenuButton: View {
+    @Binding var isFavoriteSheetOpen: Bool
+    
     var body: some View {
-        Button {} label: {
+        Button {
+            isFavoriteSheetOpen.toggle()
+        } label: {
             Image(systemName: "line.3.horizontal")
                 .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(.white)
@@ -338,34 +347,50 @@ private struct StartSessionBar: View {
         Button {
             routeManager.navigate(to: .sleepTime)
         } label: {
-            HStack {
-                Text("Start sleep session")
-                    .font(.headline)
-                    .foregroundStyle(.white.opacity(0.98))
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(.white.opacity(0.98))
-            }
-            .padding()
-            .background(
-                LinearGradient(
-                    colors: [Color.white.opacity(0.18), Color.blue.opacity(0.28)],
-                    startPoint: .leading, endPoint: .trailing
+            if #available(iOS 26.0, *) {
+                HStack {
+                    Text("Start sleep session")
+                        .font(.headline)
+                        .foregroundStyle(.white.opacity(0.98))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.white.opacity(0.98))
+                }
+                .padding()
+                .cornerRadius(14)
+                .glassEffect(.regular.tint(.white.opacity(0.05)), in : .rect(cornerRadius: 14))
+            } else {
+                HStack {
+                    Text("Start sleep session")
+                        .font(.headline)
+                        .foregroundStyle(.white.opacity(0.98))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.white.opacity(0.98))
+                }
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.18), Color.blue.opacity(0.28)],
+                        startPoint: .leading, endPoint: .trailing
+                    )
                 )
-            )
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.25)))
-            .cornerRadius(14)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.25)))
+                .cornerRadius(14)
+            }
         }
-        .buttonStyle(.plain)
+        
+        
     }
 }
 
 #Preview { SoundView() }
 
-//// MARK: - Temporary shim to fix missing API
-//// This extension satisfies the call site in `PlayButton`.
-//// Replace with your real implementation or remove once
-//// `AudioPlayerManager` gains a matching API.
+
+// MARK: - Temporary shim to fix missing API
+// This extension satisfies the call site in `PlayButton`.
+// Replace with your real implementation or remove once
+// `AudioPlayerManager` gains a matching API.
 //extension AudioPlayerManager {
 //    enum PlaybackError: Error { case assetNotFound }
 //

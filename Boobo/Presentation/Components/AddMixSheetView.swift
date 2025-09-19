@@ -5,27 +5,28 @@
 //  Created by Abdul Jabbar on 18/09/25.
 //
 
-
 import SwiftUI
+import SwiftData
 
 struct AddMixSheetView: View {
     @Binding var name: String
     var onSave: (String) -> Void
+
+    // SwiftData context + your manager
+    @Environment(\.modelContext) private var modelContext
 
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusName: Bool
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-
-            // CONTENT
+            // CONTENT (unchanged) ...
             VStack(spacing: 18) {
                 Text("Name your mix")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.white)
                     .padding(.top, 30)
 
-                // Underlined text field
                 VStack(spacing: 6) {
                     TextField("My mix…", text: $name)
                         .textInputAutocapitalization(.words)
@@ -36,10 +37,10 @@ struct AddMixSheetView: View {
                 }
                 .padding(.horizontal, 20)
 
-                // Save button
                 Button {
                     let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
                     guard !trimmed.isEmpty else { return }
+
                     onSave(trimmed)
                     dismiss()
                 } label: {
@@ -67,17 +68,16 @@ struct AddMixSheetView: View {
             .background(
                 LinearGradient(
                     gradient: Gradient(stops: [
-                        .init(color: Color(red: 90/255,  green: 134/255, blue: 179/255), location: 0.00), // top  ~#5A86B3
-                        .init(color: Color(red: 71/255,  green: 115/255, blue: 164/255), location: 0.35), // mid1 ~#4773A4
-                        .init(color: Color(red: 45/255,  green:  94/255, blue: 142/255), location: 0.70), // mid2 ~#2D5E8E
-                        .init(color: Color(red: 18/255,  green:  58/255, blue:  98/255), location: 1.00)  // bottom ~#123A62
+                        .init(color: Color(red: 90/255,  green: 134/255, blue: 179/255), location: 0.00),
+                        .init(color: Color(red: 71/255,  green: 115/255, blue: 164/255), location: 0.35),
+                        .init(color: Color(red: 45/255,  green:  94/255, blue: 142/255), location: 0.70),
+                        .init(color: Color(red: 18/255,  green:  58/255, blue:  98/255), location: 1.00)
                     ]),
                     startPoint: .top,
                     endPoint: .bottom
                 )
             )
 
-            // Close (X)
             Button { dismiss() } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 22, weight: .semibold))
@@ -87,7 +87,6 @@ struct AddMixSheetView: View {
             }
         }
         .onAppear {
-            // Focus after the sheet settles
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                 focusName = true
             }
@@ -95,8 +94,7 @@ struct AddMixSheetView: View {
     }
 }
 
+
 #Preview {
-    AddMixSheetView(name: .constant("Soundkul")) { _ in }
-        .presentationDetents([.fraction(0.33), .large])
-        .presentationCornerRadius(24)
+    AddMixSheetView(name: .constant("")) { _ in }
 }

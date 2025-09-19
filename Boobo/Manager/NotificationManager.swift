@@ -41,6 +41,23 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         UNUserNotificationCenter.current().add(req)
     }
     
+    func shceduleNotification(hour : Int, minute: Int, seconds: Int? = 0, router: RouteManager?) {
+        var dc = DateComponents()
+        dc.hour = hour
+        dc.minute = minute
+        dc.second = seconds
+        self.router = router
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dc, repeats: true)
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Waktu Tenang"
+        content.body = "Waktunya tidur 🛌"
+        
+        let req = UNNotificationRequest(identifier: "daily-22", content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(req)
+    }
+    
     // Saat notif muncul (foreground)
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
@@ -57,4 +74,11 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         }
         completionHandler()
     }
+    
+    func resetAllNotifications() {
+            let center = UNUserNotificationCenter.current()
+            center.removeAllPendingNotificationRequests() // hapus yang belum muncul
+            center.removeAllDeliveredNotifications()      // hapus yang sudah muncul di Notification Center
+            print("Semua notifikasi berhasil di-reset.")
+        }
 }

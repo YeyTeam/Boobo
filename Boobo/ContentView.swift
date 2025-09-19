@@ -10,7 +10,6 @@ import SwiftData
 
 struct ContentView: View {
     @EnvironmentObject var router: RouteManager
-    
 //    @EnvironmentObject var sessionManager: SessionManager
     
     var body: some View {
@@ -22,6 +21,14 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            let now = Date()
+            let calendar = Calendar.current
+            let hour = calendar.component(.hour, from: now)
+            let minute = calendar.component(.minute, from: now)
+            let second = calendar.component(.second, from: now)
+            print("hour \(hour), minute \(minute), second \(second)")
+            NotificationManager.shared.shceduleNotification(hour : hour, minute: minute, seconds: second + 10, router : router)
+
             router.resetRoot()
             router.navigate(to: .onboarding)
         }
