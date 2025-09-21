@@ -11,7 +11,7 @@ struct SoundView: View {
     @State private var vThunder: Double = 0.75
     @State private var vWater:   Double = 0.55
     @State private var vBirds:   Double = 0.60
-    
+    @EnvironmentObject var audioPlayerManager : AudioPlayerManager
     @EnvironmentObject var routeManager: RouteManager
     
     @StateObject var viewModel: SoundViewModel = SoundViewModel()
@@ -66,6 +66,9 @@ struct SoundView: View {
             .presentationDetents([.fraction(0.36)])
             .presentationCornerRadius(24)
             .presentationDragIndicator(.hidden)
+        }
+        .onAppear(){
+            viewModel.audioPlayerManager = audioPlayerManager
         }
     }
 
@@ -384,7 +387,11 @@ private struct StartSessionBar: View {
     }
 }
 
-#Preview { SoundView() }
+#Preview {
+    var audioPlayerManager = AudioPlayerManager()
+    SoundView()
+        .environmentObject(audioPlayerManager)
+}
 
 
 // MARK: - Temporary shim to fix missing API

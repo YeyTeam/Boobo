@@ -11,6 +11,10 @@ struct PlaySound: View {
     @Environment(\.dismiss) var dismiss   // untuk close / kembali
     @State private var isPlaying = false  // state tombol play
     @State private var showOverlay = false // state overlay
+    @StateObject var playSoundVM = PlaySoundViewModel()
+    
+    @EnvironmentObject var audioPlayerManager : AudioPlayerManager
+    @EnvironmentObject var motionManager : MotionManager
     
     var body: some View {
         ZStack {
@@ -112,6 +116,7 @@ struct PlaySound: View {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             isPlaying = true
                             showOverlay = true
+                            playSoundVM.playSound()
                         }
                     }
                 }) {
@@ -155,7 +160,16 @@ struct PlaySound: View {
                     }
                 }
                 .transition(.opacity)
+                .onAppear(){
+                    if motionManager.isFaceDown, !isPlaying {
+                        playSoundVM.playSound()
+                        
+                    }else {
+                        playSoundVM.stopSound()
+                    }
+                }
             }
+                
         }
     }
 }

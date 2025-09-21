@@ -10,6 +10,7 @@ import SwiftData
 
 struct ContentView: View {
     @EnvironmentObject var router: RouteManager
+    
 //    @EnvironmentObject var sessionManager: SessionManager
     
     var body: some View {
@@ -47,9 +48,13 @@ struct ContentView: View {
 //    
 //    // Buat instance router & session untuk preview
     let router = RouteManager()
+    let motionManager : MotionManager = .init()
+    let audioPlayerManager : AudioPlayerManager = .init()
 //    let sessionManager = SessionManager()
 //    
     ContentView()
         .environmentObject(router)
+        .environmentObject(audioPlayerManager)
+        .environmentObject(motionManager)
         
 }

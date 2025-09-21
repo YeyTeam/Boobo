@@ -34,7 +34,8 @@ class RouteManager: ObservableObject {
             return AnyView(OnBoardingView())
         case .sleepTime:
             return AnyView(SleepHygieneView())
-       
+        case .playSound:
+            return AnyView(PlaySound())
         
         }
     }
