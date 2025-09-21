@@ -25,11 +25,12 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
     }
     
     // Jadwalkan notifikasi jam 22:00 setiap hari
-    func scheduleDailyAt10PM() {
+    func scheduleDaily(hour: Int, minute: Int, second: Int, router: RouteManager?) {
         var dc = DateComponents()
-        dc.hour = 22
-        dc.minute = 0
-        dc.second = 0
+        dc.hour = hour
+        dc.minute = minute
+        dc.second = second
+        self.router = router
         
         let trigger = UNCalendarNotificationTrigger(dateMatching: dc, repeats: true)
         

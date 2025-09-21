@@ -70,5 +70,15 @@ class AudioPlayerManager : ObservableObject{
         players.removeAll()
         audioEngineService.stopEngine()
     }
+    
+    // Play default single sound
+        func playDefault() {
+            let defaultSound = SoundModel(name : "Rain", url : "rain_sound", icon : "cloud.rain.fill",volume : 0.5)
+            do {
+                try playSounds(sounds: [defaultSound])
+            } catch {
+                print("Error playDefault: \(error)")
+            }
+        }
 }
 

@@ -10,10 +10,13 @@ import SwiftUI
 
 struct OnBoarding2:View {
     var viewModel: OnBoardingViewModel?
-    @State var selectedTime: Date = Date()
-    var sleepTime: Date {
-        Calendar.current.date(byAdding: .hour, value: -8, to: selectedTime) ?? selectedTime
-    }
+    @State var selectedTime: Date = {
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+        components.hour = 6
+        components.minute = 0
+        return Calendar.current.date(from: components) ?? Date()
+    }()
+    @EnvironmentObject var routeManager: RouteManager
     
     var body: some View {
         VStack{
@@ -45,6 +48,19 @@ struct OnBoarding2:View {
             Spacer()
             
             PrimaryButton(text : "Get Started"){
+                // Hitung sleep time (8 jam sebelum bangun)
+                let sleepTime = selectedTime.addingTimeInterval(-8 * 60 * 60)
+                
+                // Simpan ke UserDefaults
+                UserDefaults.standard.set(selectedTime, forKey: "wakeUpTime")
+                UserDefaults.standard.set(sleepTime, forKey: "sleepTime")
+                
+                let components = Calendar.current.dateComponents([.hour, .minute, .second], from: sleepTime)
+                
+                NotificationManager.shared.scheduleDaily(hour: components.hour ?? 22, minute: components.minute ?? 0, second: components.second ?? 0, router: routeManager)
+                
+                print("Notifikasi will apear on : \(components.hour ?? 0) : \(components.minute ?? 0) : \(components.second ?? 0)")
+                
                 viewModel?.nextPage()
             }
         }
@@ -56,7 +72,7 @@ struct OnBoarding2:View {
 }
 
 #Preview{
-    var routeManager: RouteManager = .init()
+    let routeManager: RouteManager = .init()
     OnBoardingView()
         .environmentObject(routeManager)
 }

@@ -4,6 +4,7 @@
 //
 //  Created by Abdul Jabbar on 16/09/25.
 //
+
 import SwiftUI
 
 struct SoundView: View {
@@ -13,27 +14,27 @@ struct SoundView: View {
     @State private var vBirds:   Double = 0.60
     @EnvironmentObject var audioPlayerManager : AudioPlayerManager
     @EnvironmentObject var routeManager: RouteManager
+    @EnvironmentObject var sessionManager: SessionManager
     
     @StateObject var viewModel: SoundViewModel = SoundViewModel()
     // Selection state for chips (pure UI for now)
-
+    
     @State private var selected: Set<String> = ["waterfall", "birds"]
     
     @State private var isFavoriteSheetOpen: Bool = false
-
+    
     // SHEET STATE (must be inside the view)
     @State private var showingAddMix = false
     @State private var draftMixName = ""
-
+    
     var body: some View {
-
         ZStack(alignment: .top) {
             // Background behind everything
             Image("BackgroundA") // ensure the asset is named exactly like this
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
-
+            
             // Foreground content
             VStack(spacing: 5) {
                 header
@@ -41,7 +42,12 @@ struct SoundView: View {
                 chipStrip
                 menuRow
                 controls
-                startSessionBar
+                if sessionManager.isSleepTime {
+                    startSessionBar
+                } else {
+                    notifInformationBar
+                }
+                
             }
             .padding(.horizontal, 20)
             .frame(maxHeight : .infinity)
@@ -51,15 +57,19 @@ struct SoundView: View {
                     .scaledToFill()
             )
             .ignoresSafeArea(.all)
-
-            
             .frame(maxHeight: .infinity)
+            
+            // Overlay Face Down Phone
+            if sessionManager.isOverlayShow {
+                PhoneFaceDownOverlay()
+                    .zIndex(999)
+            }
         }
         // Present sheet here (the parent view)
         .sheet(isPresented: $showingAddMix) {
             AddMixSheetView(name: $draftMixName) { name in
                 // TODO: save with SwiftData later if you want
-//                 saveMix(name)
+                //                 saveMix(name)
                 viewModel.addMixSound(name: name)
                 showingAddMix = false
             }
@@ -69,9 +79,12 @@ struct SoundView: View {
         }
         .onAppear(){
             viewModel.audioPlayerManager = audioPlayerManager
+
+//            sessionManager.isSleepTime = false
+//            print(sessionManager.isSleepTime)
         }
     }
-
+    
     // MARK: - Header
     private var header: some View {
         HStack(alignment: .top) {
@@ -80,7 +93,7 @@ struct SoundView: View {
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(.white)
                     .lineSpacing(2)
-
+                
                 Text("White sounds help you relax, drift off quickly, and enjoy uninterrupted sleep.")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.9))
@@ -90,7 +103,7 @@ struct SoundView: View {
             HeartButton()
         }
     }
-
+    
     // MARK: - Sliders
     private var sliders: some View {
         HStack(spacing: 44) {
@@ -110,7 +123,7 @@ struct SoundView: View {
         }
         .padding(.top, 6)
     }
-
+    
     // MARK: - Sound Chip Strip
     private var chipStrip: some View {
         VStack(spacing: -2) {
@@ -132,7 +145,7 @@ struct SoundView: View {
         // let the strip extend to the edges despite parent padding
         .padding(.horizontal, -20)
     }
-
+    
     // MARK: - Playlist Favorite (≡)
     private var menuRow: some View {
         HStack {
@@ -140,7 +153,7 @@ struct SoundView: View {
             MenuButton(isFavoriteSheetOpen: $isFavoriteSheetOpen)
         }
     }
-
+    
     // MARK: - Controls (timer, big play, save-mix)
     private var controls: some View {
         HStack(spacing: 42) {
@@ -155,10 +168,16 @@ struct SoundView: View {
         }
         .padding(.top, 4)
     }
-
+    
     // MARK: - Start session bar
     private var startSessionBar: some View {
         StartSessionBar()
+            .padding(.top, 20)
+    }
+    
+    // MARK: - Start session bar
+    private var notifInformationBar: some View {
+        NotifInformationBar()
             .padding(.top, 20)
     }
 }
@@ -235,9 +254,9 @@ private struct Chip: View {
     
     @Binding var selected: Set<String>
     @StateObject var viewModel : SoundViewModel
-
+    
     @State var isOn: Bool = false
-
+    
     var body: some View {
         Button {
             isOn = viewModel.addSound(sound)
@@ -249,8 +268,8 @@ private struct Chip: View {
                     .foregroundStyle(isOn ? .black : .white)
                     .frame(width: 50, height: 50)
                     .background(Circle().fill(isOn
-                        ? Color(red: 0.92, green: 0.80, blue: 0.50)
-                        : .white.opacity(0.16)))
+                                              ? Color(red: 0.92, green: 0.80, blue: 0.50)
+                                              : .white.opacity(0.16)))
                 Text(sound.name)
                     .font(.caption2)
                     .multilineTextAlignment(.center)
@@ -286,7 +305,7 @@ private struct MenuButton: View {
 private struct ActionCircleButton: View {
     let systemName: String
     var action: () -> Void = {}
-
+    
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
@@ -302,7 +321,7 @@ private struct ActionCircleButton: View {
 
 private struct SaveMixButton: View {
     var action: () -> Void
-
+    
     var body: some View {
         Button(action: action) {
             Image(systemName: "plus")
@@ -318,7 +337,7 @@ private struct SaveMixButton: View {
 
 private struct PlayButton: View {
     @StateObject var viewModel:SoundViewModel
-
+    
     var body: some View {
         Button {
             viewModel.playSound()
@@ -387,10 +406,64 @@ private struct StartSessionBar: View {
     }
 }
 
+
+private struct NotifInformationBar: View {
+    @EnvironmentObject var routeManager: RouteManager
+    
+    var body: some View {
+        
+        if #available(iOS 26.0, *) {
+            HStack {
+                if let savedSleepTime = UserDefaults.standard.object(forKey: "sleepTime") as? Date {
+                    Text("We will send you notification on \(savedSleepTime.formatted(date: .omitted, time: .shortened))")
+                        .font(.headline)
+                        .foregroundStyle(.white.opacity(0.98))
+                } else {
+                    Text("We will send you notification on weekend")
+                        .font(.headline)
+                        .foregroundStyle(.white.opacity(0.98))
+                }
+                
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(.white.opacity(0.98))
+            }
+            .padding()
+            .cornerRadius(14)
+            .glassEffect(.regular.tint(.white.opacity(0.05)), in : .rect(cornerRadius: 14))
+        } else {
+            HStack {
+                Text("Start sleep session")
+                    .font(.headline)
+                    .foregroundStyle(.white.opacity(0.98))
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(.white.opacity(0.98))
+            }
+            .padding()
+            .background(
+                LinearGradient(
+                    colors: [Color.white.opacity(0.18), Color.blue.opacity(0.28)],
+                    startPoint: .leading, endPoint: .trailing
+                )
+            )
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.25)))
+            .cornerRadius(14)
+        }
+        
+        
+        
+    }
+}
+
+
 #Preview {
-    var audioPlayerManager = AudioPlayerManager()
+    let router = RouteManager()
+    let sessionManager = SessionManager()
+    
     SoundView()
-        .environmentObject(audioPlayerManager)
+        .environmentObject(router)
+        .environmentObject(sessionManager)
 }
 
 
