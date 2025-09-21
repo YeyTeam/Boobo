@@ -19,6 +19,7 @@ struct HomeView: View {
             }
             
         }
+        .navigationBarBackButtonHidden(true)
         .onAppear(){
             
             if #available(iOS 26.0, *) {
@@ -42,7 +43,7 @@ struct HomeView: View {
 
 
 #Preview {
-    var routeManager = RouteManager()
+    let routeManager = RouteManager()
     HomeView()
         .environmentObject(routeManager)
 }

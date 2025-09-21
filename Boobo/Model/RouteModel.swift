@@ -10,4 +10,5 @@ enum MainRouter: Hashable, Equatable {
     case home
     case setting
     case sleepTime
+    case playSound
 }
