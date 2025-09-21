@@ -12,7 +12,7 @@ struct SoundView: View {
     @State private var vThunder: Double = 0.75
     @State private var vWater:   Double = 0.55
     @State private var vBirds:   Double = 0.60
-    
+    @EnvironmentObject var audioPlayerManager : AudioPlayerManager
     @EnvironmentObject var routeManager: RouteManager
     @EnvironmentObject var sessionManager: SessionManager
     
@@ -77,9 +77,11 @@ struct SoundView: View {
             .presentationCornerRadius(24)
             .presentationDragIndicator(.hidden)
         }
-        .onAppear() {
-            sessionManager.isSleepTime = false
-            print(sessionManager.isSleepTime)
+        .onAppear(){
+            viewModel.audioPlayerManager = audioPlayerManager
+
+//            sessionManager.isSleepTime = false
+//            print(sessionManager.isSleepTime)
         }
     }
     
@@ -403,6 +405,7 @@ private struct StartSessionBar: View {
         
     }
 }
+
 
 private struct NotifInformationBar: View {
     @EnvironmentObject var routeManager: RouteManager

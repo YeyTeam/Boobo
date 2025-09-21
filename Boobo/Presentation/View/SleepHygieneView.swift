@@ -19,6 +19,7 @@ struct SleepHygieneView: View {
     
     @State private var currentStep = 0
     @State private var dragOffset: CGFloat = 0
+    @StateObject var motionManager = MotionManager()
     
     //    private let totalSteps = 4
     
@@ -57,10 +58,17 @@ struct SleepHygieneView: View {
                     .buttonStyle(PrimaryButtonStyle())
                 } else {
                     Button("Finish") {
-                        sessionManager.setupSleepTime()
-                        sessionManager.isOverlayShow = true
-                        sessionManager.setIsOnProgress(state: true)
-                        router.navigate(to: .playSound)
+                        withAnimation{
+                            router.resetRoot()
+                            router.navigate(to: .playSound)
+                        }
+                       
+                        //sessionManager.setupSleepTime()
+//                        sessionManager.setupSleepTime()
+//                        sessionManager.isOverlayShow = true
+//                        sessionManager.setIsOnProgress(state: true)
+//                        router.navigate(to: .playSound)
+
                     }
                     .buttonStyle(PrimaryButtonStyle())
                 }
@@ -147,6 +155,7 @@ struct PrimaryButtonStyle: ButtonStyle {
 }
 
 #Preview {
+    
     SleepHygieneView()
 }
 

@@ -25,12 +25,16 @@ struct BooboApp: App {
     
     static let router = RouteManager()
     @StateObject var sessionManager = SessionManager()
+    var audioPlayerManager : AudioPlayerManager = .init()
+    var motionManager : MotionManager = .init()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(Self.router)
                 .environmentObject(sessionManager)
+                .environmentObject(audioPlayerManager)
+                .environmentObject(motionManager)
         }
         .modelContainer(sharedModelContainer)
     }
