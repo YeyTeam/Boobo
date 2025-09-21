@@ -13,10 +13,13 @@ struct PlaySoundView: View {
     @StateObject var audioPlayerManager = AudioPlayerManager()
     @StateObject var motionManager = MotionManager()
     
+    @Environment(\.scenePhase) var scenePhase
+    
     var body: some View {
         ZStack {
             VStack {
                 Button(action: {
+                    sessionManager.setIsOnProgress(state: false)
                     router.navigate(to: .home)
                 }) {
                     Text("Close")
@@ -42,6 +45,7 @@ struct PlaySoundView: View {
         }
         .onDisappear {
             motionManager.stop()
+            motionManager.stop()
         }
         // Mulai / stop sensor saat sleep session dimulai
         .onChange(of: sessionManager.isSleepTime) {
@@ -59,6 +63,19 @@ struct PlaySoundView: View {
                 sessionManager.isOverlayShow = false
             } else {
                 audioPlayerManager.stopAll()
+            }
+        }
+        // Finish condition
+        .onChange(of: scenePhase) {
+            switch scenePhase {
+            case .active:
+                print("App jadi aktif lagi (HP baru dibuka / kembali ke foreground)")
+                sessionManager.resetSleepTime()
+            case .background:
+                print("in background phase")
+            case .inactive:
+                print("in active phase")
+            @unknown default: break
             }
         }
     }

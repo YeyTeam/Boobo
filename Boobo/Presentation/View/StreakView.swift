@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct StreakView: View {
-    @State var totalStreak: Int = 8
+    @State var totalStreak: Int = UserDefaults.standard.integer(forKey: "totalStreak")
     @State var showAlert : Bool = false
     
     @EnvironmentObject var sessionManager: SessionManager
@@ -98,7 +98,7 @@ struct StreakView: View {
                         Spacer()
                     }
                     
-                    if totalStreak > 14 {
+                    if totalStreak >= 14 {
                         Image("Streak")
                         
                     }
