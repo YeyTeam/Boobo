@@ -9,9 +9,12 @@ import SwiftUI
 
 class SessionManager: ObservableObject {
     @Published var isSleepTime: Bool
+    @Published var isOverlayShow: Bool
     
     init() {
-        self.isSleepTime = UserDefaults.standard.bool(forKey: "isSleepTime")
+        self.isSleepTime = false
+        self.isOverlayShow = false
+        UserDefaults.standard.bool(forKey: "isSleepTime")
     }
     
     func setupSleepTime() {

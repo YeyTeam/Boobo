@@ -4,6 +4,7 @@
 //
 //  Created by Abdul Jabbar on 16/09/25.
 //
+
 import SwiftUI
 
 struct SoundView: View {
@@ -13,6 +14,7 @@ struct SoundView: View {
     @State private var vBirds:   Double = 0.60
     
     @EnvironmentObject var routeManager: RouteManager
+    @EnvironmentObject var sessionManager: SessionManager
     
     @StateObject var viewModel: SoundViewModel = SoundViewModel()
     // Selection state for chips (pure UI for now)
@@ -26,7 +28,6 @@ struct SoundView: View {
     @State private var draftMixName = ""
 
     var body: some View {
-
         ZStack(alignment: .top) {
             // Background behind everything
             Image("BackgroundA") // ensure the asset is named exactly like this
@@ -51,9 +52,13 @@ struct SoundView: View {
                     .scaledToFill()
             )
             .ignoresSafeArea(.all)
-
-            
             .frame(maxHeight: .infinity)
+            
+            // Overlay Face Down Phone
+            if sessionManager.isOverlayShow {
+                PhoneFaceDownOverlay()
+                    .zIndex(999)                
+            }
         }
         // Present sheet here (the parent view)
         .sheet(isPresented: $showingAddMix) {
@@ -384,7 +389,14 @@ private struct StartSessionBar: View {
     }
 }
 
-#Preview { SoundView() }
+#Preview {
+    let router = RouteManager()
+    let sessionManager = SessionManager()
+    
+    SoundView()
+        .environmentObject(router)
+        .environmentObject(sessionManager)
+}
 
 
 // MARK: - Temporary shim to fix missing API

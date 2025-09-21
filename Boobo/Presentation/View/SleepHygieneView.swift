@@ -57,8 +57,9 @@ struct SleepHygieneView: View {
                     .buttonStyle(PrimaryButtonStyle())
                 } else {
                     Button("Finish") {
-                        router.resetRoot()
-                        //sessionManager.setupSleepTime()
+                        sessionManager.setupSleepTime()
+                        sessionManager.isOverlayShow = true
+                        router.navigate(to: .playSound)
                     }
                     .buttonStyle(PrimaryButtonStyle())
                 }
