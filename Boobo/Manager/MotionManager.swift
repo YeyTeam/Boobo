@@ -16,17 +16,17 @@ class MotionManager: ObservableObject {
     
     func start() {
         guard motionManager.isAccelerometerAvailable else { return }
-        motionManager.accelerometerUpdateInterval = 1
+        motionManager.accelerometerUpdateInterval = 1.5
         motionManager.startAccelerometerUpdates(to: .main) { data, _ in
             guard let accelData = data else { return }
             let z = accelData.acceleration.z
             
             if z > 0.9 {
                 self.isFaceDown = true
-                print("tengkurap")
+                print("face down")
             } else {
                 self.isFaceDown = false
-                print("hp dimainkan")
+                print("hp on")
             }
         }
     }

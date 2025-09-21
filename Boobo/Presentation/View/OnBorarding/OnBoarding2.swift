@@ -10,7 +10,12 @@ import SwiftUI
 
 struct OnBoarding2:View {
     var viewModel: OnBoardingViewModel?
-    @State var selectedTime: Date = Date()
+    @State var selectedTime: Date = {
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+        components.hour = 6
+        components.minute = 0
+        return Calendar.current.date(from: components) ?? Date()
+    }()
     @EnvironmentObject var routeManager: RouteManager
     
     var body: some View {
