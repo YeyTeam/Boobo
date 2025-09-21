@@ -45,7 +45,8 @@ struct SoundView: View {
                 if sessionManager.isSleepTime {
                     startSessionBar
                 } else {
-                    notifInformationBar
+                    startSessionBar
+                    //notifInformationBar
                 }
                 
             }
@@ -460,10 +461,12 @@ private struct NotifInformationBar: View {
 #Preview {
     let router = RouteManager()
     let sessionManager = SessionManager()
+    let audioPlayerManager = AudioPlayerManager()
     
     SoundView()
         .environmentObject(router)
         .environmentObject(sessionManager)
+        .environmentObject(audioPlayerManager)
 }
 
 
