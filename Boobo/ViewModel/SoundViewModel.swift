@@ -7,11 +7,14 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 
 class SoundViewModel:ObservableObject {
     @ObservedObject var audioPlayerManager:AudioPlayerManager
     @Published var isPlaying:Bool = false
     @Published var sounds:[SoundModel] = []
+    var mixManager = MixManager()
+    var context : ModelContext?
     
     init() {
         self.audioPlayerManager = AudioPlayerManager()
@@ -82,8 +85,52 @@ class SoundViewModel:ObservableObject {
         self.sounds.remove(at:i )
     }
     
+    func loadMixData(context : ModelContext) -> [SoundModelBeta]{
+        if self.context != nil {
+            do{
+                let data = try mixManager.fetchData(for : self.context!)
+                print("Data fetched successfully \(data.count)")
+                var datas : [SoundModelBeta] = []
+                for data in data {
+                    print("Mix Name : \(data.mixName)")
+                    datas.append(SoundModelBeta(
+                        name: data.mixName, url: data.mixName, icon: data.mixName, volume: 0.0
+                    ))
+                }
+                return datas
+            }catch{
+                print("Error in fetching : \(error.localizedDescription)")
+            }
+        }
+        return []
+
+    }
+    
     func addMixSound(name: String) {
         print("addMixSound = \(name)")
+        
+        if context != nil {
+            var mixSounds:[SoundModelBeta] = []
+            for sound in self.sounds {
+                mixSounds.append(SoundModelBeta(
+                    name: sound.name,
+                    url: sound.url,
+                    icon : sound.icon,
+                    volume: sound.volume
+                ))
+            }
+            do{
+                try mixManager.insertData(context : self.context!, data : MixModel(
+                    mixName : name,
+                    mixSounds: mixSounds
+                ))
+                print("Berhasil save data")
+            }catch{
+                print("Error \(error.localizedDescription)")
+            }
+            
+
+        }
         
         for sound in sounds {
             print("Name: \(sound.name), url: \(sound.url), icon: \(sound.icon)")

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct SoundView: View {
     // Volumes (demo)
@@ -15,7 +16,10 @@ struct SoundView: View {
     @EnvironmentObject var audioPlayerManager : AudioPlayerManager
     @EnvironmentObject var routeManager: RouteManager
     @EnvironmentObject var sessionManager: SessionManager
+    @Environment(\.modelContext) var context: ModelContext
     
+    @State var mixData : [SoundModelBeta] = []
+
     @StateObject var viewModel: SoundViewModel = SoundViewModel()
     // Selection state for chips (pure UI for now)
     
@@ -68,7 +72,7 @@ struct SoundView: View {
         }
         // Present sheet here (the parent view)
         .sheet(isPresented: $showingAddMix) {
-            AddMixSheetView(name: $draftMixName) { name in
+            AddMixSheetView(name: $draftMixName, data : mixData) { name in
                 // TODO: save with SwiftData later if you want
                 //                 saveMix(name)
                 viewModel.addMixSound(name: name)
@@ -80,7 +84,8 @@ struct SoundView: View {
         }
         .onAppear(){
             viewModel.audioPlayerManager = audioPlayerManager
-
+            viewModel.context = context
+            mixData = viewModel.loadMixData(context:context)
 //            sessionManager.isSleepTime = false
 //            print(sessionManager.isSleepTime)
         }

@@ -10,6 +10,7 @@ import SwiftData
 
 struct AddMixSheetView: View {
     @Binding var name: String
+    var data:[SoundModelBeta]
     var onSave: (String) -> Void
 
     // SwiftData context + your manager
@@ -63,6 +64,11 @@ struct AddMixSheetView: View {
                 .opacity(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1)
 
                 Spacer(minLength: 0)
+                
+                ForEach(data) { sound in
+                    Text(sound.name)
+                        .foregroundStyle(.white)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(
@@ -96,5 +102,5 @@ struct AddMixSheetView: View {
 
 
 #Preview {
-    AddMixSheetView(name: .constant("")) { _ in }
+    AddMixSheetView(name: .constant(""), data : []) { _ in }
 }

@@ -160,13 +160,20 @@ struct PlaySound: View {
                     }
                 }
                 .transition(.opacity)
-                .onAppear(){
-                    if motionManager.isFaceDown, !isPlaying {
+                .onChange(of: motionManager.isFaceDown){ isFaceDown,_ in
+                    print("Omaigot you are face down: \(isFaceDown)")
+                    if !isFaceDown && isPlaying {
                         playSoundVM.playSound()
                         
                     }else {
                         playSoundVM.stopSound()
                     }
+                }
+                .onAppear(){
+                    playSoundVM.audioPlayerManager = audioPlayerManager
+                    
+                    motionManager.start()
+                    
                 }
             }
                 

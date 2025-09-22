@@ -8,7 +8,7 @@
 import Foundation
 
 class PlaySoundViewModel: ObservableObject {
-    var audioPlayerManager : AudioPlayerManager = .init()
+    var audioPlayerManager : AudioPlayerManager = AudioPlayerManager()
     var sounds: [SoundModel] = [
         soundList[0],
         soundList[1],
@@ -17,9 +17,10 @@ class PlaySoundViewModel: ObservableObject {
     
     func playSound() {
         do {
-            try audioPlayerManager.playSounds(sounds: sounds)
+            try audioPlayerManager.playSounds(sounds: self.sounds)
+            print("Success playing sound")
         }catch{
-            
+            print("Error playing sound \(error.localizedDescription)")
         }
     }
     

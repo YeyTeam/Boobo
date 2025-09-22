@@ -13,7 +13,8 @@ class MixModel {
     var mixName: String
     @Relationship var mixSounds: [SoundModelBeta] = []
     
-    init(mixName: String) {
+    init(mixName: String, mixSounds : [SoundModelBeta]) {
         self.mixName = mixName
+        self.mixSounds = mixSounds
     }
 }

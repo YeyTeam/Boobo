@@ -9,6 +9,7 @@
 import SwiftUI
 
 struct WakeTimeSheetView: View {
+    @EnvironmentObject var routeManager: RouteManager
     @Binding var wakeHour: Int
     @Binding var wakeMinute: Int
     var onSave: (_ wakeHour: Int, _ wakeMinute: Int, _ sleepHour: Int, _ sleepMinute: Int) -> Void
@@ -100,6 +101,8 @@ struct WakeTimeSheetView: View {
             // Save button
             Button {
                 onSave(wakeHour, wakeMinute, sleepTime.hour, sleepTime.minute)
+                
+                NotificationManager.shared.scheduleDaily(hour: sleepTime.hour, minute: sleepTime.minute, second: 0, router: routeManager)
             } label: {
                 Text("Save")
                     .font(.headline)
