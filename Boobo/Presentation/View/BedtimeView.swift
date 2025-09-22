@@ -136,9 +136,10 @@ struct BedtimeView: View {
                 wakeHour = newWakeH
                 wakeMinute = newWakeM
             }
-            .presentationDetents([.fraction(0.5), .medium, .large])
+            .presentationDetents([.fraction(0.6)])
             .presentationCornerRadius(24)
             .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled(true)
         }
     }
 
