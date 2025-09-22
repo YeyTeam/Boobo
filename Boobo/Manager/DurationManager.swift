@@ -2,73 +2,89 @@
 //  DurationManager.swift
 //  Boobo
 //
-//  Created by Abdul Jabbar on 22/09/25.
-//
-
-
-//
-//  DurationManager.swift
-//  Boobo
-//
 //  Created by Abdul Jabbar on 20/09/25.
-
 import Foundation
 import Combine
 
+/// Mengelola countdown durasi playback (sleep session).
+/// Sumber kebenaran untuk "durasi yang dikonfigurasi" adalah `durationMinutes`.
+/// - Default: 30 menit.
+/// - Reset rules:
+///   - Pause/stop => reset ke penuh & berhenti meng-tick.
+///   - Ganti mix/sound => reset ke penuh; jika sedang play, mulai meng-tick, jika tidak maka idle.
+/// - Set dari sheet tidak auto-start; ticking hanya jika sedang play.
 final class DurationManager: ObservableObject {
+    // MARK: - Published State
     @Published private(set) var isActive: Bool = false
     @Published private(set) var remaining: TimeInterval = 0
-    @Published var durationMinutes: Int = 30 // default if user never sets
+    @Published var durationMinutes: Int = 30 // default jika user belum mengatur
 
+    // MARK: - Internals
     private var timer: Timer?
     private var onTimeUp: (() -> Void)?
+    private var endDate: Date? // untuk akurasi ketika app lifecycle berubah
 
-    // Cached end date for robustness if you later add foreground/background handling
-    private var endDate: Date?
-
-    // MARK: - Public API (existing)
+    // MARK: - Hooks
+    /// Pasang callback ketika waktu habis.
     func configure(onTimeUp: @escaping () -> Void) {
         self.onTimeUp = onTimeUp
     }
 
-    /// Sets the configured duration (in minutes).
+    // MARK: - Public API (Konfigurasi)
+    /// Set durasi (dalam menit). Tidak otomatis mulai menghitung.
     func setDuration(minutes: Int) {
-        durationMinutes = max(1, minutes)
-        // If active, caller can decide whether to restart or not via restartIfActiveAndPlaying.
+        let clamped = max(1, minutes)
+        durationMinutes = clamped
+
+        // Jika sudah ada sesi aktif, kita prime remaining ke durasi baru
+        // tapi tidak auto-start ticking (biar dikontrol dari Play/Pause).
+        if isActive {
+            remaining = TimeInterval(clamped * 60)
+            endDate = nil
+            stopTicking()
+        }
     }
 
-    /// Start the timer if needed. If `isPlaying` is false, we mark active but keep full remaining.
+    // MARK: - Public API (Start/Reset sesuai state playback)
+    /// Memastikan timer terinisialisasi. Jika `isActive` belum true, aktifkan dan set `remaining` ke durasi penuh.
+    /// - Parameter isPlaying: Jika true, mulai ticking; jika false, hanya prime (idle).
     func startIfNeeded(isPlaying: Bool) {
         if !isActive {
-            remaining = TimeInterval(durationMinutes * 60)
             isActive = true
+            remaining = TimeInterval(durationMinutes * 60)
         }
+        resetTimer() // pastikan timer bersih
+        if isPlaying {
+            startTicking()
+        } else {
+            stopTicking() // tetap idle pada nilai penuh
+        }
+    }
+
+    /// Restart countdown ke durasi penuh **jika** sudah aktif.
+    /// - Jika `isPlaying == true` → mulai ticking dari penuh.
+    /// - Jika `isPlaying == false` → reset ke penuh dan idle.
+    func restartIfActiveAndPlaying(isPlaying: Bool) {
+        guard isActive else { return }
+        remaining = TimeInterval(durationMinutes * 60)
         resetTimer()
         if isPlaying {
             startTicking()
         } else {
-            // Not playing: ensure no ticking and full remaining (reset rule on pause)
-            remaining = TimeInterval(durationMinutes * 60)
             stopTicking()
         }
     }
 
-    /// If a timer is active and playback is true, restart countdown to full duration.
-    /// Call this when the active mix changes while playing.
-    func restartIfActiveAndPlaying(isPlaying: Bool) {
-        guard isActive else { return }
-        remaining = TimeInterval(durationMinutes * 60)
-        if isPlaying {
-            startTicking()
-        } else {
-            stopTicking()
-        }
-    }
-
+    /// Dipanggil ketika state playback berubah (Play ↔ Pause/Stop).
+    /// - isPlaying true  → reset ke penuh lalu mulai ticking.
+    /// - isPlaying false → reset ke penuh & berhenti ticking.
     func handlePlaybackChange(isPlaying: Bool) {
-        guard isActive else { return }
-        // Reset on any pause/stop per requirement
+        // Jika belum aktif, kita aktifkan supaya UI bisa menampilkan remaining.
+        if !isActive {
+            isActive = true
+        }
         remaining = TimeInterval(durationMinutes * 60)
+        resetTimer()
         if isPlaying {
             startTicking()
         } else {
@@ -76,16 +92,8 @@ final class DurationManager: ObservableObject {
         }
     }
 
-    func cancel() {
-        stopTicking()
-        isActive = false
-        remaining = 0
-        endDate = nil
-    }
-
-    // MARK: - Convenience API (added to match your View code)
-
-    /// Start immediately with a specific duration in *seconds*.
+    // MARK: - Public API (Kontrol eksplisit)
+    /// Mulai segera dengan durasi tertentu (detik).
     @MainActor
     func start(duration: TimeInterval) {
         cancel()
@@ -95,56 +103,68 @@ final class DurationManager: ObservableObject {
         startTicking()
     }
 
-    /// Stop explicitly (alias of `cancel()` but keeps a clearer name at call sites).
+    /// Alias yang lebih semantik untuk `cancel()`.
     @MainActor
     func stop() {
         cancel()
     }
 
-    /// Reset remaining time. If `to` is nil, reset to the configured `durationMinutes`.
+    /// Reset waktu tersisa. Jika `to` nil, reset ke `durationMinutes`.
     @MainActor
     func reset(to duration: TimeInterval? = nil) {
         stopTicking()
         remaining = max(0, duration ?? TimeInterval(durationMinutes * 60))
         endDate = nil
+        if !isActive { isActive = true } // biar UI bisa baca remaining
     }
 
-    /// Read-only alias used by your UI.
+    /// Batalkan sesi: nonaktifkan dan nolkan remaining.
+    func cancel() {
+        stopTicking()
+        isActive = false
+        remaining = 0
+        endDate = nil
+    }
+
+    // MARK: - Read-only convenience
     var currentRemainingTime: TimeInterval { max(0, remaining) }
 
-    /// Shim used by earlier call sites that passed a mix name.
-    /// Keeps compatibility while ignoring the `for` parameter for now.
+    /// Shim untuk kompatibilitas API lama (mengabaikan nama mix).
     @MainActor
     func setDuration(_ duration: TimeInterval, for _: String) {
-        durationMinutes = max(1, Int(ceil(duration / 60)))
+        let mins = max(1, Int(ceil(duration / 60)))
+        durationMinutes = mins
         if isActive {
-            // If already active, adopt new remaining but do not auto-start ticking.
-            remaining = duration
+            remaining = TimeInterval(mins * 60)
             endDate = nil
+            stopTicking()
         }
     }
 
     // MARK: - Internal ticking
-
     private func startTicking() {
         stopTicking()
+
         if endDate == nil {
             endDate = Date().addingTimeInterval(remaining)
         }
 
+        // Timer 1 Hz
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self else { return }
-            let now = Date()
+
             if let end = self.endDate {
-                self.remaining = max(0, end.timeIntervalSince(now))
+                self.remaining = max(0, end.timeIntervalSinceNow)
             } else {
                 self.remaining = max(0, self.remaining - 1)
             }
+
             if self.remaining <= 0 {
                 self.cancel()
                 self.onTimeUp?()
             }
         }
+
         if let timer {
             RunLoop.main.add(timer, forMode: .common)
         }

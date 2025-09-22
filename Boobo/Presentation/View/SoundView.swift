@@ -15,6 +15,7 @@ struct SoundView: View {
     @EnvironmentObject var routeManager: RouteManager
 
     @StateObject private var viewModel = SoundViewModel()
+    @StateObject private var audioManager = AudioPlayerManager()
 
     @State private var selected: Set<String> = ["waterfall", "birds"]
     @State private var isFavoriteSheetOpen: Bool = false
@@ -24,7 +25,7 @@ struct SoundView: View {
     @State private var draftMixName = ""
 
     @State private var showingSetDurationSheet = false
-    @StateObject private var durationManager: DurationManager = DurationManager()
+    @StateObject private var durationManager = DurationManager()
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -41,6 +42,7 @@ struct SoundView: View {
                 controls
                 startSessionBar
             }
+    
             .padding(.horizontal, 20)
             .frame(maxHeight: .infinity)
             .background(
@@ -51,10 +53,24 @@ struct SoundView: View {
             .ignoresSafeArea(.all)
             .frame(maxHeight: .infinity)
         }
-        // Present sheet here (the parent view)
+        .onAppear {
+            durationManager.configure {
+                Task { @MainActor in
+                    audioManager.stopAll()
+                }
+            }
+        }
+        .onChange(of: audioManager.isPlaying) { playing in
+            if playing {
+                durationManager.startIfNeeded(isPlaying: true)
+            } else {
+                durationManager.handlePlaybackChange(isPlaying: false)
+            }
+        }
+        // ===== AddMix sheet =====
         .sheet(isPresented: $showingAddMix) {
-            // TODO: Replace `[]` with the actual `[SoundModelBeta]` source when available.
             AddMixSheetView(name: $draftMixName, data: []) { name in
+                // NOTE: call on the object, not on $viewModel
                 viewModel.addMix(name: name)
                 showingAddMix = false
             }
@@ -62,38 +78,42 @@ struct SoundView: View {
             .presentationCornerRadius(24)
             .presentationDragIndicator(.hidden)
         }
+        // ===== Duration sheet =====
         .sheet(isPresented: $showingSetDurationSheet) {
-            VStack {
-                SetDurationSheet(
-                    isFavoriteSheetOpen: $isFavoriteSheetOpen, isPresented: $showingSetDurationSheet,
-                    initialDuration: durationManager.currentRemainingTime > 0
-                        ? durationManager.currentRemainingTime
-                        : TimeInterval(durationManager.durationMinutes * 60),
-                    onSave: { selected in
-                        durationManager.start(duration: selected)
-                    },
-                    onDismiss: {
-                        // optional: reset or leave as-is
-                        durationManager.reset()
+            SetDurationSheet(
+                isFavoriteSheetOpen: $isFavoriteSheetOpen,
+                isPresented: $showingSetDurationSheet,
+                initialDuration: durationManager.currentRemainingTime > 0
+                    ? durationManager.currentRemainingTime
+                    : TimeInterval(durationManager.durationMinutes * 60),
+                onSave: { selected in
+                    durationManager.setDuration(minutes: Int(ceil(selected / 60)))
+                    if viewModel.isPlaying {
+                        durationManager.restartIfActiveAndPlaying(isPlaying: true)
+                    } else {
+                        durationManager.startIfNeeded(isPlaying: false)
                     }
-                )
-                .padding(.horizontal, 16)
-                .padding(.bottom, 12)
-            }
-            .background(
-                LinearGradient(
-                    colors: [
-                        Color(hex: "3D6196"),
-                        Color(hex: "5F7BA5"),
-                        Color(hex: "12416D")
-                    ], startPoint: .top, endPoint: .bottom
-                )
+                },
+                onDismiss: {
+                    // optional UI behavior
+                    durationManager.reset()
+                }
             )
+            .padding(.horizontal, 16)
+            .padding(.top, 14)   // space under rounded top
+            .padding(.bottom, 12)
             .environmentObject(durationManager)
             .presentationDetents([.fraction(0.45)])
             .presentationCornerRadius(24)
             .presentationDragIndicator(.hidden)
-        }}
+            .presentationBackground(
+                LinearGradient(
+                    colors: [Color(hex: "3D6196"), Color(hex: "5F7BA5"), Color(hex: "12416D")],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
+        }
+    }
 
     // MARK: - Header
     private var header: some View {
@@ -119,7 +139,6 @@ struct SoundView: View {
         HStack(spacing: 44) {
             ForEach(0..<3, id: \.self) { index in
                 if index < viewModel.sounds.count {
-                    // ✅ Manual Binding into array element
                     VerticalFader(
                         value: Binding(
                             get: { viewModel.sounds[index].volume },
@@ -144,7 +163,10 @@ struct SoundView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
                     ForEach(soundList, id: \.id) { sound in
-                        Chip(sound: sound, selected: $selected, viewModel: viewModel)
+                        Chip(sound: sound,
+                             selected: $selected,
+                             viewModel: viewModel)
+                        .environmentObject(durationManager) // pass timer down
                     }
                 }
                 .padding(.horizontal, 12)
@@ -165,6 +187,7 @@ struct SoundView: View {
             MenuButton(isFavoriteSheetOpen: $isFavoriteSheetOpen)
         }
     }
+    
 
     // MARK: - Controls (timer, big play, save-mix)
     private var controls: some View {
@@ -172,7 +195,8 @@ struct SoundView: View {
             ActionCircleButton(systemName: "timer") {
                 showingSetDurationSheet = true
             }
-            PlayButton(viewModel: viewModel)
+            PlayButton(viewModel: viewModel, audioManager: audioManager)
+                .environmentObject(durationManager)
 
             SaveMixButton {
                 draftMixName = ""
@@ -187,7 +211,9 @@ struct SoundView: View {
         StartSessionBar()
             .padding(.top, 20)
     }
+    
 }
+
 
 // ==========================================================
 // Components
@@ -212,11 +238,22 @@ private struct Chip: View {
     var sound: SoundModel
     @Binding var selected: Set<String>
     @ObservedObject var viewModel: SoundViewModel
-    @State var isOn: Bool = false
+    @State private var isOn: Bool = false
+
+    @EnvironmentObject var durationManager: DurationManager
 
     var body: some View {
         Button {
+            // Toggle sound in the mix (returns on/off)
             isOn = viewModel.addSound(sound)
+
+            // Reset duration whenever the mix changes
+            let playing = viewModel.isPlaying
+            if durationManager.isActive {
+                durationManager.restartIfActiveAndPlaying(isPlaying: playing)
+            } else {
+                durationManager.startIfNeeded(isPlaying: playing)
+            }
         } label: {
             VStack(spacing: 8) {
                 Image(systemName: sound.icon)
@@ -291,23 +328,26 @@ private struct SaveMixButton: View {
 
 private struct PlayButton: View {
     @ObservedObject var viewModel: SoundViewModel
+    @ObservedObject var audioManager: AudioPlayerManager   // inject audio manager
 
     var body: some View {
         Button {
-            viewModel.playSound()
+            if audioManager.isPlaying {
+                audioManager.stopAll()
+            } else {
+                do {
+                    try audioManager.playSounds(sounds: viewModel.sounds)
+                } catch {
+                    print("Playback error:", error)
+                }
+            }
         } label: {
             ZStack {
                 Circle().stroke(.white.opacity(0.9), lineWidth: 5)
                     .frame(width: 96, height: 90)
-                if viewModel.isPlaying {
-                    Image(systemName: "pause.fill")
-                        .font(.system(size: 34, weight: .bold))
-                        .foregroundStyle(.white)
-                } else {
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 34, weight: .bold))
-                        .foregroundStyle(.white)
-                }
+                Image(systemName: audioManager.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundStyle(.white)
             }
         }
         .buttonStyle(.plain)
@@ -356,30 +396,29 @@ private struct StartSessionBar: View {
     }
 }
 
-#Preview { SoundView() }
+#Preview {
+    SoundView()
+        .environmentObject(RouteManager())
+        .environmentObject(DurationManager())
+}
 
-// MARK: - Temporary shim to satisfy `addMix(name:)` until implemented in SoundViewModel
+// MARK: - Temporary shims so calls compile until real impls exist.
 extension SoundViewModel {
     @MainActor
     func addMix(name: String) {
-        // TODO: Replace with real implementation in SoundViewModel
         #if DEBUG
         print("[SoundViewModel] addMix(name:) called with: \(name)")
         #endif
     }
-}
 
-extension SoundViewModel {
     @MainActor
     func stop() {
         #if DEBUG
         print("[SoundViewModel] stop() called")
         #endif
-        // TODO: Wire to real stop logic in your audio engine
         self.isPlaying = false
     }
 }
-
 // MARK: - Temporary shim to fix missing API
 // This extension satisfies the call site in `PlayButton`.
 // Replace with your real implementation or remove once
