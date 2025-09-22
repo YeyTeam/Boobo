@@ -65,10 +65,7 @@ struct AddMixSheetView: View {
 
                 Spacer(minLength: 0)
                 
-                ForEach(data) { sound in
-                    Text(sound.name)
-                        .foregroundStyle(.white)
-                }
+                
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(

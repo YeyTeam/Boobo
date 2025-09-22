@@ -13,6 +13,9 @@ class SoundViewModel:ObservableObject {
     @ObservedObject var audioPlayerManager:AudioPlayerManager
     @Published var isPlaying:Bool = false
     @Published var sounds:[SoundModel] = []
+    @Published var mixList:[MixModel] = []
+    @Published var showDeleteAlert:Bool = false
+    @Published var currentMix:MixModel?
     var mixManager = MixManager()
     var context : ModelContext?
     
@@ -85,7 +88,7 @@ class SoundViewModel:ObservableObject {
         self.sounds.remove(at:i )
     }
     
-    func loadMixData(context : ModelContext) -> [SoundModelBeta]{
+    func loadMixData(context : ModelContext){
         if self.context != nil {
             do{
                 let data = try mixManager.fetchData(for : self.context!)
@@ -97,13 +100,20 @@ class SoundViewModel:ObservableObject {
                         name: data.mixName, url: data.mixName, icon: data.mixName, volume: 0.0
                     ))
                 }
-                return datas
+                self.mixList = data
             }catch{
                 print("Error in fetching : \(error.localizedDescription)")
             }
         }
-        return []
 
+    }
+    
+    func deleteMixData(data : MixModel){
+        do{
+            try mixManager.deleteMix(context: self.context!, data: data)
+        }catch{
+            print("Gagal mengapus data : \(error.localizedDescription)")
+        }
     }
     
     func fetchMixData()-> [MixModel] {
@@ -118,6 +128,48 @@ class SoundViewModel:ObservableObject {
         }
         return []
 
+    }
+    
+    func loadMix(mixData : MixModel){
+        self.sounds.removeAll()
+
+        for sound in mixData.mixSounds {
+            self.sounds.append(SoundModel(
+                name: sound.name,
+                url: sound.url,
+                icon: sound.icon,
+                volume : sound.volume
+            ))
+        }
+    }
+    
+    func updateCurrentMixSound(context : ModelContext) {
+        if self.currentMix != nil && self.context != nil {
+            var newSounds : [SoundModelBeta] = []
+            
+            for sound in self.sounds {
+                newSounds.append(SoundModelBeta(
+                    name : sound.name,
+                    url : sound.url,
+                    icon : sound.icon,
+                    volume : sound.volume
+                ))
+            }
+            do{
+                try mixManager.updateMixData(
+                    context: self.context!,
+                    data: self.currentMix!,
+                    newData:
+                        MixModel(
+                            mixName: self.currentMix!.mixName,
+                            mixSounds: newSounds
+                        )
+                )
+                
+            }catch{
+                print("Error cannot update mix data !")
+            }
+        }
     }
     
     func addMixSound(name: String) {

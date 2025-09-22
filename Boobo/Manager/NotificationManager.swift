@@ -76,10 +76,39 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         completionHandler()
     }
     
-    func resetAllNotifications() {
-            let center = UNUserNotificationCenter.current()
-            center.removeAllPendingNotificationRequests() // hapus yang belum muncul
-            center.removeAllDeliveredNotifications()      // hapus yang sudah muncul di Notification Center
-            print("Semua notifikasi berhasil di-reset.")
+    func scheduleDailyNotification(hour: Int, minute: Int, title: String, body: String) {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        
+        // Set waktu (jam dan menit)
+        var dateComponents = DateComponents()
+        dateComponents.hour = hour
+        dateComponents.minute = minute
+        
+        // Trigger setiap hari di jam tersebut
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        
+        let request = UNNotificationRequest(
+            identifier: "daily-\(hour)-\(minute)",
+            content: content,
+            trigger: trigger
+        )
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("❌ Error scheduling notification: \(error.localizedDescription)")
+            } else {
+                print("✅ Notification scheduled at \(hour):\(minute)")
+            }
         }
+    }
+    
+    func resetAllNotifications() {
+        let center = UNUserNotificationCenter.current()
+        center.removeAllPendingNotificationRequests() // hapus yang belum muncul
+        center.removeAllDeliveredNotifications()      // hapus yang sudah muncul di Notification Center
+        print("Semua notifikasi berhasil di-reset.")
+    }
 }

@@ -8,8 +8,11 @@
 import SwiftUI
 
 struct FavoriteSheet: View {
+    @ObservedObject var viewModel:SoundViewModel
     @Binding var isFavoriteSheetOpen: Bool
-    @State var mixList : [MixModel]
+    @Environment(\.modelContext) var context
+    @State var showDeleteAlert: Bool = false
+    @State var mixData : MixModel? = nil
     
     var body: some View {
         VStack {
@@ -33,15 +36,13 @@ struct FavoriteSheet: View {
             // Scrollable playlist
             ScrollView {
                 VStack(spacing: 16) {
-                    ForEach(mixList, id: \.self.id) { mix in
+                    ForEach(viewModel.mixList, id: \.self) { mix in
                         HStack {
                             HStack(spacing: 16) {
                                 VStack {
-                                    Image(systemName: "play.fill")
+                                    Image("Thumbnail")
                                         .foregroundStyle(.white)
                                 }
-                                .padding()
-                                .background(.blue)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                                 
                                 VStack(alignment: .leading, spacing: 6) {
@@ -53,41 +54,38 @@ struct FavoriteSheet: View {
                                         .foregroundStyle(.white)
                                 }
                             }
+                            .onTapGesture {
+                                viewModel.loadMix(mixData : mix)
+                            }
+                            
                             Spacer()
-                            Image(systemName: "ellipsis")
-                                .foregroundStyle(.white)
+                            
+                            Image(systemName: "trash.fill")
+                                .foregroundStyle(.red)
                                 .font(.title3)
+                                .padding(.trailing, 10)
+                                .onTapGesture {
+                                    showDeleteAlert = true
+                                    mixData = mix
+                                    viewModel.currentMix = mix
+                                }
+                                
                         }
-                        .padding(.horizontal)
                     }
                 }
-                .padding(.top)
+                .padding(.vertical)
             }
+          
+            
             
             // Save button sticky di bawah
-            Button(action: {
-                print("Save tapped")
-            }) {
-                Text("Save")
-                    .foregroundStyle(.black)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        LinearGradient(
-                            colors: [
-                                Color(hex: "FFFFFF"),
-                                Color(hex: "D7D7D7"),
-                                Color(hex: "B7B7B7")
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(12)
+            PrimaryButton(text : "Save"){
+                
             }
-            .padding(.top, 16)
+            .padding(.top, 20)
         }
-        .padding(32)
+        .padding(.top, 30)
+        .padding(.horizontal, 32)
         .background(
             LinearGradient(
                 gradient: Gradient(stops: [
@@ -100,13 +98,31 @@ struct FavoriteSheet: View {
                 endPoint: .bottom
             )
         )
+        .onAppear{
+            viewModel.context = context
+        }
+        .alert(isPresented: $showDeleteAlert ) {
+            Alert(
+                title: Text("Delete mix ?"),
+                primaryButton:
+                        .default(Text("Yes")) {
+                            if mixData != nil {
+                                viewModel.deleteMixData(data: mixData!)
+                            }
+                            
+                            viewModel.loadMixData(context: context)
+                        },
+                secondaryButton: .cancel(Text("Cancel"))
+            )
+        }
     }
 }
 
 
 #Preview {
+    @Previewable @StateObject var viewModel = SoundViewModel()
     VStack{
-        FavoriteSheet(isFavoriteSheetOpen: .constant(true), mixList : [])
+        FavoriteSheet(viewModel : viewModel, isFavoriteSheetOpen: .constant(true))
 
     }
     .background(

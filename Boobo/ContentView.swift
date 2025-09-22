@@ -14,7 +14,7 @@ struct ContentView: View {
     @EnvironmentObject var sessionManager: SessionManager
     @StateObject var audioPlayerManager = AudioPlayerManager()
     @StateObject var motionManager = MotionManager()
-
+    @State var userHasBoarded: Bool = UserDefaults.standard.bool(forKey: "userHasBoarded")
     
     var body: some View {
         NavigationStack(path: $router.mainPath) {
@@ -34,8 +34,11 @@ struct ContentView: View {
             
                     NotificationManager.shared.shceduleNotification(hour : hour, minute: minute, seconds: second + 10, router : router)
             
-            router.resetRoot()
-            router.navigate(to: .onboarding)
+            if !userHasBoarded {
+                router.resetRoot()
+                router.navigate(to: .onboarding)
+            }
+            
         }
     }
 

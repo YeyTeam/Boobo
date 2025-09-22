@@ -44,11 +44,12 @@ struct OnBoarding3:View {
             
             Button(
                 action: {
-                    
+                    viewModel?.nextPage()
                 }
             ){
-                Text("Skip")
+                Text("Not now")
                     .foregroundColor(.white)
+                    .font(.title2)
             }
         }
         .background(

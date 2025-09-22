@@ -32,11 +32,11 @@ struct VerticalFader: View {
 
                 // Knob
                 Image(systemName: symbol)
-                    .foregroundStyle(symbol == "music.note" ? .white.opacity(0.25) : .black)
+                    .foregroundStyle(symbol == "plus" ? .white.opacity(0.25) : .black)
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(.black)
                     .frame(width: 56, height: 56)
-                    .background(Circle().fill(symbol == "music.note" ? .gray.opacity(0.4) : Color.primaryYellow))
+                    .background(Circle().fill(symbol == "plus" ? .gray.opacity(0.4) : Color.primaryYellow))
                     .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 10))
                     .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
                     .offset(y: -(height - 56) * value)

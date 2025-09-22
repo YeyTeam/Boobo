@@ -12,7 +12,18 @@ class MixManager {
     
     func fetchData(for context : ModelContext) throws-> [MixModel]{
         do{
-            return try self.swiftDataService.fetch(context: context, for : MixModel.self)
+            return try self.swiftDataService.fetch(context: context, for : MixModel.self).reversed()
+        }catch{
+            throw MixError.fetchError
+        }
+    }
+    
+    func updateMixData(context : ModelContext, data: MixModel, newData: MixModel) throws{
+        do{
+            data.id = newData.id
+            data.mixName = newData.mixName
+            data.mixSounds = newData.mixSounds
+            try self.swiftDataService.save(context: context);
         }catch{
             throw MixError.fetchError
         }
@@ -23,6 +34,15 @@ class MixManager {
             context.insert(data)
             try self.swiftDataService.save(context: context);
 
+        }catch{
+            throw MixError.fetchError
+        }
+    }
+    
+    func deleteMix(context : ModelContext, data: MixModel) throws{
+        do{
+            context.delete(data)
+            try self.swiftDataService.save(context: context);
         }catch{
             throw MixError.fetchError
         }

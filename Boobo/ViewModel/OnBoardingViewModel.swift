@@ -35,6 +35,7 @@ class OnBoardingViewModel : ObservableObject {
     func nextPage(){
         pageIndex += 1
         if pageIndex == 4 {
+            UserDefaults.standard.set(true, forKey: "userHasBoarded")
             self.routeManager?.resetRoot()
         }
        

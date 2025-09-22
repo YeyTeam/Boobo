@@ -84,7 +84,7 @@ struct SoundView: View {
             .presentationDragIndicator(.hidden)
         }
         .sheet(isPresented: $isFavoriteSheetOpen){
-            FavoriteSheet(isFavoriteSheetOpen: $isFavoriteSheetOpen, mixList : viewModel.fetchMixData())
+            FavoriteSheet(viewModel : viewModel, isFavoriteSheetOpen: $isFavoriteSheetOpen )
                 .presentationDetents([.fraction(0.56)])
                 .presentationCornerRadius(24)
                 .presentationDragIndicator(.hidden)
@@ -97,7 +97,7 @@ struct SoundView: View {
         .onAppear(){
             viewModel.audioPlayerManager = audioPlayerManager
             viewModel.context = context
-            mixData = viewModel.loadMixData(context:context)
+            viewModel.loadMixData(context:context)
 //            sessionManager.isSleepTime = false
 //            print(sessionManager.isSleepTime)
         }
@@ -118,7 +118,9 @@ struct SoundView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
-            HeartButton()
+            HeartButton(){
+                viewModel.updateCurrentMixSound(context: context)
+            }
         }
     }
     
@@ -132,7 +134,7 @@ struct SoundView: View {
                             viewModel.updateVolume(index: value, volume: Float(newValue))
                         }
                 }else{
-                    VerticalFader(value: .constant(0.5), symbol: "music.note")
+                    VerticalFader(value: .constant(0.5), symbol: "plus")
                     
                 }
             }
@@ -149,7 +151,12 @@ struct SoundView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
                     ForEach(soundList, id : \.self.id){ sound in
-                        Chip(sound : sound, selected: $selected, viewModel: viewModel)
+                        if viewModel.sounds.contains(where: { $0.name == sound.name }){
+                            Chip(sound : sound, selected: $selected, viewModel: viewModel, isOn : true)
+                        }else{
+                            Chip(sound : sound, selected: $selected, viewModel: viewModel)
+                        }
+                       
                     }
                 }
                 .padding(.horizontal, 12)
@@ -168,7 +175,9 @@ struct SoundView: View {
     private var menuRow: some View {
         HStack {
             Spacer()
-            MenuButton(isFavoriteSheetOpen: $isFavoriteSheetOpen)
+            MenuButton(isFavoriteSheetOpen: $isFavoriteSheetOpen){
+                viewModel.loadMixData(context: context)
+            }
         }
     }
     
@@ -179,7 +188,7 @@ struct SoundView: View {
             PlayButton(viewModel: viewModel)
             
             // NEW: SaveMixButton replaces the "+" circle
-            SaveMixButton {
+            SaveMixButton(viewModel : viewModel) {
                 draftMixName = ""
                 showingAddMix = true
             }
@@ -253,8 +262,11 @@ struct SoundView: View {
 //>>>>>>> c57086e3a1327dc0a0fd844733fe3d761a4ba433
 
 private struct HeartButton: View {
+    var action : () -> Void?
     var body: some View {
-        Button {} label: {
+        Button {
+            action()
+        } label: {
             ZStack {
                 Circle()
                     .stroke(.white.opacity(0.7), lineWidth: 3)
@@ -271,9 +283,10 @@ private struct Chip: View {
     var sound: SoundModel
     
     @Binding var selected: Set<String>
-    @StateObject var viewModel : SoundViewModel
+    @ObservedObject var viewModel : SoundViewModel
     
     @State var isOn: Bool = false
+    
     
     var body: some View {
         Button {
@@ -286,7 +299,7 @@ private struct Chip: View {
                     .foregroundStyle(isOn ? .black : .white)
                     .frame(width: 50, height: 50)
                     .background(Circle().fill(isOn
-                                              ? Color(red: 0.92, green: 0.80, blue: 0.50)
+                                              ? .primaryYellow
                                               : .white.opacity(0.16)))
                 Text(sound.name)
                     .font(.caption2)
@@ -297,15 +310,20 @@ private struct Chip: View {
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 0)
+        .onAppear(){
+            
+        }
     }
 }
 
 private struct MenuButton: View {
     @Binding var isFavoriteSheetOpen: Bool
+    var action : () -> Void?
     
     var body: some View {
         Button {
             isFavoriteSheetOpen.toggle()
+            action()
         } label: {
             Image(systemName: "line.3.horizontal")
                 .font(.system(size: 20, weight: .bold))
@@ -338,6 +356,7 @@ private struct ActionCircleButton: View {
 
 
 private struct SaveMixButton: View {
+    @ObservedObject var viewModel: SoundViewModel
     var action: () -> Void
     
     var body: some View {
@@ -348,6 +367,7 @@ private struct SaveMixButton: View {
                 .frame(width: 54, height: 54)
                 .overlay(Circle().stroke(.white.opacity(0.85), lineWidth: 3))
         }
+        .disabled(viewModel.sounds.isEmpty)
         .buttonStyle(.plain)
         .accessibilityLabel("Save mix")
     }
@@ -369,13 +389,14 @@ private struct PlayButton: View {
                         .font(.system(size: 34, weight: .bold))
                         .foregroundStyle(.white)
                 }else {
-                    Image(systemName: "play.fill")
+                    Image(systemName: viewModel.sounds.isEmpty ? "play.slash.fill" :"play.fill")
                         .font(.system(size: 34, weight: .bold))
                         .foregroundStyle(.white)
                 }
                 
             }
         }
+        .disabled(viewModel.sounds.isEmpty)
         .buttonStyle(.plain)
     }
 }

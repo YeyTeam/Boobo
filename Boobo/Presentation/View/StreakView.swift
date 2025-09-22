@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct StreakView: View {
-    @State var totalStreak: Int = UserDefaults.standard.integer(forKey: "totalStreak")
+    @State var totalStreak: Int = 9 //UserDefaults.standard.integer(forKey: "totalStreak")
     @State var showAlert : Bool = false
     
     @EnvironmentObject var sessionManager: SessionManager

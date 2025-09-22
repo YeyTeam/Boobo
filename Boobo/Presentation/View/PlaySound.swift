@@ -15,6 +15,7 @@ struct PlaySound: View {
     
     @EnvironmentObject var audioPlayerManager : AudioPlayerManager
     @EnvironmentObject var motionManager : MotionManager
+    @State var showAlert : Bool = false
     
     var body: some View {
         ZStack {
@@ -26,23 +27,44 @@ struct PlaySound: View {
             
             VStack(spacing: 32) {
                 // Title and Close button
-                HStack {
-                    Spacer()
-                    Text("White Sound")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundStyle(.white)
-                    Spacer()
+                ZStack(alignment: .topTrailing) {
+                    HStack {
+                        Spacer()
+                        Text("White Sound")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundStyle(.white)
+                        Spacer()
+                        
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 78)
                     
                     Button(action: {
-                        dismiss() // kembali ke halaman sebelumnya (Home)
+                        showAlert.toggle()
                     }) {
                         Image(systemName: "xmark")
                             .foregroundColor(.white)
+                            .font(.title)
                             .padding(8)
+                            .padding(.horizontal)
+                            .padding(.top, 78)
+                    }
+                    .alert(isPresented: $showAlert) {
+                        Alert(
+                            title: Text("End Session"),
+                            message : Text("Are you sure want to end sleep session ?"),
+                            primaryButton:
+                                    .default(Text("Yes")){
+                                        dismiss() // kembali ke halaman sebelumnya (Home)
+
+                                    },
+                            secondaryButton:
+                                    .cancel()
+                        )
+
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top, 78)
+                
                 
                 Spacer()
                 
@@ -178,6 +200,7 @@ struct PlaySound: View {
             }
                 
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
 

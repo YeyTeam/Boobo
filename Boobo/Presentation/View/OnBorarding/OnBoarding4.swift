@@ -35,7 +35,7 @@ struct OnBoarding4:View {
             
             Spacer()
             
-            PrimaryButton(text : "Get Started"){
+            PrimaryButton(text : "Done"){
                 viewModel?.nextPage()
             }
             
