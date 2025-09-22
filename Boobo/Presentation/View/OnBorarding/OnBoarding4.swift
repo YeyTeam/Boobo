@@ -12,7 +12,6 @@ struct OnBoarding4:View {
     var viewModel : OnBoardingViewModel?
     var body: some View {
         VStack{
-            Spacer()
             
             Text("You're All Set")
                 .foregroundStyle(.white)
@@ -31,7 +30,7 @@ struct OnBoarding4:View {
             
             Image("Sleep")
                 .resizable()
-                .frame(width : 200, height: 200)
+                .frame(width : 180, height: 200)
                 .padding()
             
             Spacer()
@@ -49,5 +48,7 @@ struct OnBoarding4:View {
 }
 
 #Preview{
+    let routeManager: RouteManager = .init()
     OnBoardingView()
+        .environmentObject(routeManager)
 }

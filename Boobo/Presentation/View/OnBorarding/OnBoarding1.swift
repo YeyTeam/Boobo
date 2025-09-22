@@ -19,7 +19,7 @@ struct OnBoarding1:View {
             
             Text("Because great nights, lead to great days")
                 .foregroundStyle(.white)
-                .font(.title)
+                .font(.title2)
                 .multilineTextAlignment(.center)
                 .padding()
                 .padding(.horizontal, 30)
@@ -32,12 +32,15 @@ struct OnBoarding1:View {
             }
         }
         .background(
-            Image("BackgroundB")
+            Image("BackgroundA")
         )
         
     }
 }
 
 #Preview{
+    let routeManager = RouteManager()
+    
     OnBoardingView()
+        .environmentObject(routeManager)
 }

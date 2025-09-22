@@ -30,3 +30,15 @@ extension Color {
         )
     }
 }
+
+
+extension View {
+    @ViewBuilder
+    func ifAvailable<T: View>(iOS26 transform: (Self) -> T) -> some View {
+        if #available(iOS 26.0, *) {
+            transform(self)
+        } else {
+            self
+        }
+    }
+}

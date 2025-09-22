@@ -2,61 +2,31 @@
 //  MixManager.swift
 //  Boobo
 //
-//  Created by Muhammad Chandra Ramadhan on 14/09/25.
+//  Created by Muhammad Chandra Ramadhan on 22/09/25.
 //
 
 import SwiftData
-import SwiftUI
 
-class MixManager{
-    let swiftDataService = SwiftDataService()
+class MixManager {
+    var swiftDataService : SwiftDataService = .init()
     
-    //Fungsi untuk ambil data mix dari database
-    func getAllMix(context : ModelContext) throws -> [MixModel] {
+    func fetchData(for context : ModelContext) throws-> [MixModel]{
         do{
-            return try swiftDataService.fetch(context: context, for: MixModel.self)
+            return try self.swiftDataService.fetch(context: context, for : MixModel.self)
         }catch{
             throw MixError.fetchError
         }
     }
     
-    //Fungsi untuk ambil data mix base on id nya
-    func getMixById(context : ModelContext, id : UUID) throws -> MixModel? {
+    func insertData(context : ModelContext, data : MixModel) throws {
         do{
-            let data = try swiftDataService.fetch(context: context, for: MixModel.self).first(where: { $0.id == id})
-            if data == nil{
-                throw MixError.mixNotFoundError
-            }
-            return data
+            context.insert(data)
+            try self.swiftDataService.save(context: context);
+
         }catch{
             throw MixError.fetchError
         }
     }
     
-    //Fungsi untuk mengupdate mix
-    func updateMix(context : ModelContext, mixId : UUID, data : MixModel) throws {
-        do{
-            if let mixData = try swiftDataService.fetch(context: context, for: MixModel.self).first(where: { $0.id == mixId}){
-                mixData.mixName = data.mixName
-                try swiftDataService.save(context: context)
-            }else{
-                throw MixError.mixNotFoundError
-            }
-        }catch{
-            throw error
-        }
-    }
     
-    func deleteMix(context : ModelContext, mixId : UUID) throws {
-        do{
-            if let mixData = try swiftDataService.fetch(context: context, for: MixModel.self).first(where: { $0.id == mixId}){
-                context.delete(mixData)
-                try swiftDataService.save(context: context)
-            }else{
-                throw MixError.mixNotFoundError
-            }
-        }catch{
-            throw error
-        }
-    }
 }

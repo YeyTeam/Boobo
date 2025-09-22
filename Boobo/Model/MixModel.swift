@@ -9,11 +9,12 @@ import SwiftData
 
 @Model
 class MixModel {
-    var id:UUID
-    var mixName:String
+    var id: UUID = UUID()
+    var mixName: String
+    @Relationship var mixSounds: [SoundModelBeta] = []
     
-    init(id: UUID, mixName: String) {
-        self.id = UUID()
+    init(mixName: String, mixSounds : [SoundModelBeta]) {
         self.mixName = mixName
+        self.mixSounds = mixSounds
     }
 }

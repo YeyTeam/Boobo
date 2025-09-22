@@ -25,11 +25,29 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
     }
     
     // Jadwalkan notifikasi jam 22:00 setiap hari
-    func scheduleDailyAt10PM() {
+    func scheduleDaily(hour: Int, minute: Int, second: Int, router: RouteManager?) {
         var dc = DateComponents()
-        dc.hour = 22
-        dc.minute = 0
-        dc.second = 0
+        dc.hour = hour
+        dc.minute = minute
+        dc.second = second
+        self.router = router
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dc, repeats: true)
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Waktu Tenang"
+        content.body = "Waktunya tidur 🛌"
+        
+        let req = UNNotificationRequest(identifier: "daily-22", content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(req)
+    }
+    
+    func shceduleNotification(hour : Int, minute: Int, seconds: Int? = 0, router: RouteManager?) {
+        var dc = DateComponents()
+        dc.hour = hour
+        dc.minute = minute
+        dc.second = seconds
+        self.router = router
         
         let trigger = UNCalendarNotificationTrigger(dateMatching: dc, repeats: true)
         
@@ -57,4 +75,11 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         }
         completionHandler()
     }
+    
+    func resetAllNotifications() {
+            let center = UNUserNotificationCenter.current()
+            center.removeAllPendingNotificationRequests() // hapus yang belum muncul
+            center.removeAllDeliveredNotifications()      // hapus yang sudah muncul di Notification Center
+            print("Semua notifikasi berhasil di-reset.")
+        }
 }
