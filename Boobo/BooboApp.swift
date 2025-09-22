@@ -27,6 +27,7 @@ struct BooboApp: App {
     @StateObject var sessionManager = SessionManager()
     var audioPlayerManager : AudioPlayerManager = .init()
     var motionManager : MotionManager = .init()
+    var durationManager : DurationManager = .init()
 
     var body: some Scene {
         WindowGroup {
@@ -35,6 +36,7 @@ struct BooboApp: App {
                 .environmentObject(sessionManager)
                 .environmentObject(audioPlayerManager)
                 .environmentObject(motionManager)
+                .environmentObject(durationManager)
                 .modelContainer(for : [
                     MixModel.self
                 ])

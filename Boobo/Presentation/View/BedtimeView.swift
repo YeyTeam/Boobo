@@ -13,10 +13,12 @@ import SwiftUI
 struct BedtimeView: View {
     @State private var isOn = false
     @State private var isWakeUpTimeSheetPresented = false   // one consistent name
-
+    @EnvironmentObject var routeManager : RouteManager
+    
+    
     // Wake time the user sets
-    @State private var wakeHour: Int = 6
-    @State private var wakeMinute: Int = 0
+    @State private var wakeHour: Int = UserDefaults.standard.integer(forKey: "wakeHour")
+    @State private var wakeMinute: Int = UserDefaults.standard.integer(forKey: "wakeMinute")
 
     // Derived bedtime = wake - 8h
     private var sleepTime: (h: Int, m: Int) {
@@ -124,6 +126,7 @@ struct BedtimeView: View {
             Image("progress-bg")
                 .resizable()
                 .scaledToFill()
+                .overlay(.black.opacity(0.4))
         )
         .ignoresSafeArea()
         // PRESENT THE SHEET
@@ -135,6 +138,10 @@ struct BedtimeView: View {
                 // Update local state from sheet (sleep time auto-derives)
                 wakeHour = newWakeH
                 wakeMinute = newWakeM
+                UserDefaults.standard.set(newWakeH, forKey: "wakeHour")
+                UserDefaults.standard.set(newWakeM, forKey: "wakeMinute")
+                NotificationManager.shared.resetAllNotifications()
+                NotificationManager.shared.scheduleDaily(hour: sleepTime.h, minute: sleepTime.m, second: 0, router : routeManager)
             }
             .presentationDetents([.fraction(0.6)])
             .presentationCornerRadius(24)

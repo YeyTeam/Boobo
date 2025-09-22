@@ -76,11 +76,12 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         completionHandler()
     }
     
-    func scheduleDailyNotification(hour: Int, minute: Int, title: String, body: String) {
+    func scheduleDailyNotification(hour: Int, minute: Int, title: String, body: String, router: RouteManager?) {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         content.sound = .default
+        self.router = router
         
         // Set waktu (jam dan menit)
         var dateComponents = DateComponents()

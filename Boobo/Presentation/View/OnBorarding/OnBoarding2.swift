@@ -57,7 +57,7 @@ struct OnBoarding2:View {
                 
                 let components = Calendar.current.dateComponents([.hour, .minute, .second], from: sleepTime)
                 
-                NotificationManager.shared.scheduleDaily(hour: components.hour ?? 22, minute: components.minute ?? 0, second: components.second ?? 0, router: routeManager)
+                NotificationManager.shared.scheduleDaily(hour: components.hour ?? 0, minute: components.minute ?? 0, second: 0,  router : routeManager)
                 
                 print("Notifikasi will apear on : \(components.hour ?? 0) : \(components.minute ?? 0) : \(components.second ?? 0)")
                 
