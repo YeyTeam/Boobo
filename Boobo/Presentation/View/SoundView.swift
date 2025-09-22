@@ -4,58 +4,45 @@
 //
 //  Created by Abdul Jabbar on 16/09/25.
 //
-
 import SwiftUI
-import SwiftData
 
 struct SoundView: View {
-    // Volumes (demo)
+    // Demo volumes (unused by the fixed faders, keeping for now)
     @State private var vThunder: Double = 0.75
     @State private var vWater:   Double = 0.55
     @State private var vBirds:   Double = 0.60
-    @EnvironmentObject var audioPlayerManager : AudioPlayerManager
-    @EnvironmentObject var routeManager: RouteManager
-    @EnvironmentObject var sessionManager: SessionManager
-    @Environment(\.modelContext) var context: ModelContext
-    
-    @State var mixData : [SoundModelBeta] = []
 
-    @StateObject var viewModel: SoundViewModel = SoundViewModel()
-    // Selection state for chips (pure UI for now)
-    
+    @EnvironmentObject var routeManager: RouteManager
+
+    @StateObject private var viewModel = SoundViewModel()
+
     @State private var selected: Set<String> = ["waterfall", "birds"]
-    
     @State private var isFavoriteSheetOpen: Bool = false
-    
-    // SHEET STATE (must be inside the view)
+
+    // Sheet state
     @State private var showingAddMix = false
     @State private var draftMixName = ""
-    
+
+    @State private var showingSetDurationSheet = false
+    @StateObject private var durationManager: DurationManager = DurationManager()
+
     var body: some View {
         ZStack(alignment: .top) {
-            // Background behind everything
-            Image("BackgroundA") // ensure the asset is named exactly like this
+            Image("BackgroundA")
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
-            
-            // Foreground content
+
             VStack(spacing: 5) {
                 header
                 sliders
                 chipStrip
                 menuRow
                 controls
-                if sessionManager.isSleepTime {
-                    startSessionBar
-                } else {
-                    startSessionBar
-                    //notifInformationBar
-                }
-                
+                startSessionBar
             }
             .padding(.horizontal, 20)
-            .frame(maxHeight : .infinity)
+            .frame(maxHeight: .infinity)
             .background(
                 Image("BackgroundA")
                     .resizable()
@@ -63,34 +50,51 @@ struct SoundView: View {
             )
             .ignoresSafeArea(.all)
             .frame(maxHeight: .infinity)
-            
-            // Overlay Face Down Phone
-            if sessionManager.isOverlayShow {
-                PhoneFaceDownOverlay()
-                    .zIndex(999)
-            }
         }
         // Present sheet here (the parent view)
         .sheet(isPresented: $showingAddMix) {
-            AddMixSheetView(name: $draftMixName, data : mixData) { name in
-                // TODO: save with SwiftData later if you want
-                //                 saveMix(name)
-                viewModel.addMixSound(name: name)
+            // TODO: Replace `[]` with the actual `[SoundModelBeta]` source when available.
+            AddMixSheetView(name: $draftMixName, data: []) { name in
+                viewModel.addMix(name: name)
                 showingAddMix = false
             }
             .presentationDetents([.fraction(0.36)])
             .presentationCornerRadius(24)
             .presentationDragIndicator(.hidden)
         }
-        .onAppear(){
-            viewModel.audioPlayerManager = audioPlayerManager
-            viewModel.context = context
-            mixData = viewModel.loadMixData(context:context)
-//            sessionManager.isSleepTime = false
-//            print(sessionManager.isSleepTime)
-        }
-    }
-    
+        .sheet(isPresented: $showingSetDurationSheet) {
+            VStack {
+                SetDurationSheet(
+                    isFavoriteSheetOpen: $isFavoriteSheetOpen, isPresented: $showingSetDurationSheet,
+                    initialDuration: durationManager.currentRemainingTime > 0
+                        ? durationManager.currentRemainingTime
+                        : TimeInterval(durationManager.durationMinutes * 60),
+                    onSave: { selected in
+                        durationManager.start(duration: selected)
+                    },
+                    onDismiss: {
+                        // optional: reset or leave as-is
+                        durationManager.reset()
+                    }
+                )
+                .padding(.horizontal, 16)
+                .padding(.bottom, 12)
+            }
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color(hex: "3D6196"),
+                        Color(hex: "5F7BA5"),
+                        Color(hex: "12416D")
+                    ], startPoint: .top, endPoint: .bottom
+                )
+            )
+            .environmentObject(durationManager)
+            .presentationDetents([.fraction(0.45)])
+            .presentationCornerRadius(24)
+            .presentationDragIndicator(.hidden)
+        }}
+
     // MARK: - Header
     private var header: some View {
         HStack(alignment: .top) {
@@ -99,7 +103,7 @@ struct SoundView: View {
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(.white)
                     .lineSpacing(2)
-                
+
                 Text("White sounds help you relax, drift off quickly, and enjoy uninterrupted sleep.")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.9))
@@ -109,35 +113,38 @@ struct SoundView: View {
             HeartButton()
         }
     }
-    
+
     // MARK: - Sliders
     private var sliders: some View {
         HStack(spacing: 44) {
-            ForEach(0..<3) { value in
-                if value < $viewModel.sounds.count {
-                    VerticalFader(value: $viewModel.sounds[value].volume, symbol: viewModel.sounds[value].icon)
-                        .onChange(of: viewModel.sounds[value].volume) { newValue,_ in
-                            viewModel.updateVolume(index: value, volume: Float(newValue))
-                        }
-                }else{
+            ForEach(0..<3, id: \.self) { index in
+                if index < viewModel.sounds.count {
+                    // ✅ Manual Binding into array element
+                    VerticalFader(
+                        value: Binding(
+                            get: { viewModel.sounds[index].volume },
+                            set: { newVal in
+                                viewModel.updateVolume(index: index, volume: Float(newVal))
+                            }
+                        ),
+                        symbol: viewModel.sounds[index].icon
+                    )
+                } else {
                     VerticalFader(value: .constant(0.5), symbol: "music.note")
-                    
                 }
             }
-            
-            
         }
         .padding(.top, 6)
     }
-    
+
     // MARK: - Sound Chip Strip
     private var chipStrip: some View {
         VStack(spacing: -2) {
             Divider().overlay(.white.opacity(0.15))
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
-                    ForEach(soundList, id : \.self.id){ sound in
-                        Chip(sound : sound, selected: $selected, viewModel: viewModel)
+                    ForEach(soundList, id: \.id) { sound in
+                        Chip(sound: sound, selected: $selected, viewModel: viewModel)
                     }
                 }
                 .padding(.horizontal, 12)
@@ -148,10 +155,9 @@ struct SoundView: View {
         .background(Color.black.opacity(0.18))
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .padding(.top, 6)
-        // let the strip extend to the edges despite parent padding
         .padding(.horizontal, -20)
     }
-    
+
     // MARK: - Playlist Favorite (≡)
     private var menuRow: some View {
         HStack {
@@ -159,14 +165,15 @@ struct SoundView: View {
             MenuButton(isFavoriteSheetOpen: $isFavoriteSheetOpen)
         }
     }
-    
+
     // MARK: - Controls (timer, big play, save-mix)
     private var controls: some View {
         HStack(spacing: 42) {
-            ActionCircleButton(systemName: "timer")
+            ActionCircleButton(systemName: "timer") {
+                showingSetDurationSheet = true
+            }
             PlayButton(viewModel: viewModel)
-            
-            // NEW: SaveMixButton replaces the "+" circle
+
             SaveMixButton {
                 draftMixName = ""
                 showingAddMix = true
@@ -174,16 +181,10 @@ struct SoundView: View {
         }
         .padding(.top, 4)
     }
-    
+
     // MARK: - Start session bar
     private var startSessionBar: some View {
         StartSessionBar()
-            .padding(.top, 20)
-    }
-    
-    // MARK: - Start session bar
-    private var notifInformationBar: some View {
-        NotifInformationBar()
             .padding(.top, 20)
     }
 }
@@ -191,54 +192,6 @@ struct SoundView: View {
 // ==========================================================
 // Components
 // ==========================================================
-
-
-//
-//<<<<<<< HEAD
-//=======
-//    var body: some View {
-//        GeometryReader { geo in
-//            let height = geo.size.height
-//
-//            ZStack(alignment: .bottom) {
-//                // Track (thin)
-//                RoundedRectangle(cornerRadius: 18)
-//                    .fill(Color.black.opacity(0.28))
-//                    .frame(width: 20)
-//                    .overlay(
-//                        RoundedRectangle(cornerRadius: 18)
-//                            .stroke(.white.opacity(0.12), lineWidth: 1)
-//                    )
-//
-//                // Fill
-//                RoundedRectangle(cornerRadius: 18)
-//                    .fill(Color.white.opacity(0.15))
-//                    .frame(width: 20, height: height * value)
-//
-//                // Knob
-//                Image(systemName: symbol)
-//                    .font(.system(size: 20, weight: .semibold))
-//                    .foregroundStyle(.black)
-//                    .frame(width: 56, height: 56)
-//                    .background(Circle().fill(Color(red: 0.92, green: 0.80, blue: 0.50)))
-//                    .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 2))
-//                    .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
-//                    .offset(y: -(height - 56) * value)
-//            }
-//            .gesture(
-//                DragGesture(minimumDistance: 0)
-//                    .onChanged { g in
-//                        // Clamp value between 0 and 1
-//                        let clamped = max(0, min(height, height - g.location.y))
-//                        value = clamped / height
-//                    }
-//            )
-//        }
-//        .frame(width: 70, height: 210)
-//        .padding(.vertical, 10)
-//    }
-//}
-//>>>>>>> c57086e3a1327dc0a0fd844733fe3d761a4ba433
 
 private struct HeartButton: View {
     var body: some View {
@@ -257,16 +210,13 @@ private struct HeartButton: View {
 
 private struct Chip: View {
     var sound: SoundModel
-    
     @Binding var selected: Set<String>
-    @StateObject var viewModel : SoundViewModel
-    
+    @ObservedObject var viewModel: SoundViewModel
     @State var isOn: Bool = false
-    
+
     var body: some View {
         Button {
             isOn = viewModel.addSound(sound)
-            //if isOn { selected.remove(key) } else { selected.insert(key) }
         } label: {
             VStack(spacing: 8) {
                 Image(systemName: sound.icon)
@@ -274,8 +224,8 @@ private struct Chip: View {
                     .foregroundStyle(isOn ? .black : .white)
                     .frame(width: 50, height: 50)
                     .background(Circle().fill(isOn
-                                              ? Color(red: 0.92, green: 0.80, blue: 0.50)
-                                              : .white.opacity(0.16)))
+                        ? Color(red: 0.92, green: 0.80, blue: 0.50)
+                        : .white.opacity(0.16)))
                 Text(sound.name)
                     .font(.caption2)
                     .multilineTextAlignment(.center)
@@ -290,7 +240,7 @@ private struct Chip: View {
 
 private struct MenuButton: View {
     @Binding var isFavoriteSheetOpen: Bool
-    
+
     var body: some View {
         Button {
             isFavoriteSheetOpen.toggle()
@@ -307,11 +257,10 @@ private struct MenuButton: View {
     }
 }
 
-// keep the generic circle for "timer"
 private struct ActionCircleButton: View {
     let systemName: String
     var action: () -> Void = {}
-    
+
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
@@ -324,10 +273,9 @@ private struct ActionCircleButton: View {
     }
 }
 
-
 private struct SaveMixButton: View {
     var action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Image(systemName: "plus")
@@ -342,26 +290,24 @@ private struct SaveMixButton: View {
 }
 
 private struct PlayButton: View {
-    @StateObject var viewModel:SoundViewModel
-    
+    @ObservedObject var viewModel: SoundViewModel
+
     var body: some View {
         Button {
             viewModel.playSound()
-            
         } label: {
             ZStack {
                 Circle().stroke(.white.opacity(0.9), lineWidth: 5)
                     .frame(width: 96, height: 90)
-                if viewModel.isPlaying{
+                if viewModel.isPlaying {
                     Image(systemName: "pause.fill")
                         .font(.system(size: 34, weight: .bold))
                         .foregroundStyle(.white)
-                }else {
+                } else {
                     Image(systemName: "play.fill")
                         .font(.system(size: 34, weight: .bold))
                         .foregroundStyle(.white)
                 }
-                
             }
         }
         .buttonStyle(.plain)
@@ -370,7 +316,7 @@ private struct PlayButton: View {
 
 private struct StartSessionBar: View {
     @EnvironmentObject var routeManager: RouteManager
-    
+
     var body: some View {
         Button {
             routeManager.navigate(to: .sleepTime)
@@ -386,7 +332,7 @@ private struct StartSessionBar: View {
                 }
                 .padding()
                 .cornerRadius(14)
-                .glassEffect(.regular.tint(.white.opacity(0.05)), in : .rect(cornerRadius: 14))
+                .glassEffect(.regular.tint(.white.opacity(0.05)), in: .rect(cornerRadius: 14))
             } else {
                 HStack {
                     Text("Start sleep session")
@@ -407,73 +353,32 @@ private struct StartSessionBar: View {
                 .cornerRadius(14)
             }
         }
-        
-        
     }
 }
 
+#Preview { SoundView() }
 
-private struct NotifInformationBar: View {
-    @EnvironmentObject var routeManager: RouteManager
-    
-    var body: some View {
-        
-        if #available(iOS 26.0, *) {
-            HStack {
-                if let savedSleepTime = UserDefaults.standard.object(forKey: "sleepTime") as? Date {
-                    Text("We will send you notification on \(savedSleepTime.formatted(date: .omitted, time: .shortened))")
-                        .font(.headline)
-                        .foregroundStyle(.white.opacity(0.98))
-                } else {
-                    Text("We will send you notification on weekend")
-                        .font(.headline)
-                        .foregroundStyle(.white.opacity(0.98))
-                }
-                
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(.white.opacity(0.98))
-            }
-            .padding()
-            .cornerRadius(14)
-            .glassEffect(.regular.tint(.white.opacity(0.05)), in : .rect(cornerRadius: 14))
-        } else {
-            HStack {
-                Text("Start sleep session")
-                    .font(.headline)
-                    .foregroundStyle(.white.opacity(0.98))
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(.white.opacity(0.98))
-            }
-            .padding()
-            .background(
-                LinearGradient(
-                    colors: [Color.white.opacity(0.18), Color.blue.opacity(0.28)],
-                    startPoint: .leading, endPoint: .trailing
-                )
-            )
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.25)))
-            .cornerRadius(14)
-        }
-        
-        
-        
+// MARK: - Temporary shim to satisfy `addMix(name:)` until implemented in SoundViewModel
+extension SoundViewModel {
+    @MainActor
+    func addMix(name: String) {
+        // TODO: Replace with real implementation in SoundViewModel
+        #if DEBUG
+        print("[SoundViewModel] addMix(name:) called with: \(name)")
+        #endif
     }
 }
 
-
-#Preview {
-    let router = RouteManager()
-    let sessionManager = SessionManager()
-    let audioPlayerManager = AudioPlayerManager()
-    
-    SoundView()
-        .environmentObject(router)
-        .environmentObject(sessionManager)
-        .environmentObject(audioPlayerManager)
+extension SoundViewModel {
+    @MainActor
+    func stop() {
+        #if DEBUG
+        print("[SoundViewModel] stop() called")
+        #endif
+        // TODO: Wire to real stop logic in your audio engine
+        self.isPlaying = false
+    }
 }
-
 
 // MARK: - Temporary shim to fix missing API
 // This extension satisfies the call site in `PlayButton`.
@@ -493,3 +398,11 @@ private struct NotifInformationBar: View {
 //        #endif
 //    }
 //}
+
+
+
+
+
+
+
+
