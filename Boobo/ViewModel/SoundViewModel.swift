@@ -106,6 +106,20 @@ class SoundViewModel:ObservableObject {
 
     }
     
+    func fetchMixData()-> [MixModel] {
+        if self.context != nil {
+            do{
+                let data = try mixManager.fetchData(for : self.context!)
+                print("Data fetched successfully \(data.count)")
+                return data
+            }catch{
+                print("Error in fetching : \(error.localizedDescription)")
+            }
+        }
+        return []
+
+    }
+    
     func addMixSound(name: String) {
         print("addMixSound = \(name)")
         

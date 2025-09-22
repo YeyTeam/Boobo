@@ -11,7 +11,12 @@ struct BedtimeView: View {
     @State private var isOn = false
     @State private var isWakeUpTimeSheetPresented = false
     @EnvironmentObject var sessionManager: SessionManager
+    @State private var selectedTime = UserDefaults.standard.object(forKey: "wakeUpTime") as? Date ?? Date()
     
+    // computed property: sleepTime = selectedTime - 8 jam
+    var sleepTime: Date {
+        Calendar.current.date(byAdding: .hour, value: -8, to: selectedTime) ?? selectedTime
+    }
     var body: some View {
         ZStack {
             VStack(alignment: .leading, spacing: 0) {
@@ -220,7 +225,9 @@ struct WakeUpTimeSheet: View {
 
 #Preview {
     let sessionManager = SessionManager()
+    let routeManager = RouteManager()
     
     BedtimeView()
         .environmentObject(sessionManager)
+        .environmentObject(routeManager)
 }

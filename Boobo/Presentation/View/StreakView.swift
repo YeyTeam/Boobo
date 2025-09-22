@@ -74,7 +74,7 @@ struct StreakView: View {
                                 Spacer()
                                 ForEach(1...7, id: \.self) { day in
                                     VStack {
-                                        Text("Day \(day)")
+                                        Text("Day \(day+(week*7))")
                                             .font(.caption2.weight(.bold))
                                             .foregroundColor(.white)
                                         VStack {

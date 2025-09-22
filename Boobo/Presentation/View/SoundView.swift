@@ -29,6 +29,7 @@ struct SoundView: View {
     
     // SHEET STATE (must be inside the view)
     @State private var showingAddMix = false
+    @State private var showFavMix = false
     @State private var draftMixName = ""
     
     var body: some View {
@@ -81,6 +82,17 @@ struct SoundView: View {
             .presentationDetents([.fraction(0.36)])
             .presentationCornerRadius(24)
             .presentationDragIndicator(.hidden)
+        }
+        .sheet(isPresented: $isFavoriteSheetOpen){
+            FavoriteSheet(isFavoriteSheetOpen: $isFavoriteSheetOpen, mixList : viewModel.fetchMixData())
+                .presentationDetents([.fraction(0.56)])
+                .presentationCornerRadius(24)
+                .presentationDragIndicator(.hidden)
+                .presentationBackground {
+                    Color.clear
+                }
+                
+            
         }
         .onAppear(){
             viewModel.audioPlayerManager = audioPlayerManager
