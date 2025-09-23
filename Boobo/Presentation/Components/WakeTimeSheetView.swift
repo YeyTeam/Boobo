@@ -86,6 +86,16 @@ struct WakeTimeSheetView: View {
 
                     // Pickers with frosted capsule across the center row
                     ZStack {
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .fill(Color.white.opacity(0.12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 28)
+                                    .stroke(Color.white.opacity(0.35), lineWidth: 1)
+                            )
+                            .frame(height: 56)
+                            .padding(.horizontal, 32)
+                            .disabled(true)
+                        
                         // Wheel pickers
                         HStack(spacing: 0) {
                             Picker("Hour", selection: $wakeHour) {
@@ -116,14 +126,8 @@ struct WakeTimeSheetView: View {
                         .clipped()
 
                         // The frosted highlight band (center)
-                        RoundedRectangle(cornerRadius: 28, style: .continuous)
-                            .fill(Color.white.opacity(0.12))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 28)
-                                    .stroke(Color.white.opacity(0.35), lineWidth: 1)
-                            )
-                            .frame(height: 56)
-                            .padding(.horizontal, 32)
+                        
+
                     }
                     .padding(.top, 6)
 
