@@ -369,8 +369,11 @@ struct SoundView: View {
             Button {
                 if audioManager.isPlaying {
                     audioManager.stopAll()
+                    viewModel.isPlaying = false
                 } else {
                     do {
+                        viewModel.isPlaying = true
+
                         try audioManager.playSounds(sounds: viewModel.sounds)
                     } catch {
                         print("Playback error:", error)
@@ -380,12 +383,12 @@ struct SoundView: View {
                 ZStack {
                     Circle().stroke(.white.opacity(0.9), lineWidth: 5)
                         .frame(width: 96, height: 90)
-                    if viewModel.isPlaying{
-                        Image(systemName: "pause.fill")
+                    if viewModel.sounds.isEmpty {
+                        Image(systemName: "play.slash.fill")
                             .font(.system(size: 34, weight: .bold))
                             .foregroundStyle(.white)
                     }else {
-                        Image(systemName: viewModel.sounds.isEmpty ? "play.slash.fill" :"play.fill")
+                        Image(systemName: viewModel.isPlaying ? "pause.fill" :"play.fill")
                             .font(.system(size: 34, weight: .bold))
                             .foregroundStyle(.white)
                     }

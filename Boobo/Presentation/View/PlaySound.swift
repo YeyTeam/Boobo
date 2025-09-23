@@ -56,6 +56,7 @@ struct PlaySound: View {
                             message : Text("Are you sure want to end sleep session ?"),
                             primaryButton:
                                     .default(Text("Yes")){
+                                        playSoundVM.audioPlayerManager.stopAll()
                                         dismiss() // kembali ke halaman sebelumnya (Home)
 
                                     },

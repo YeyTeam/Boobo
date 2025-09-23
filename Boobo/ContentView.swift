@@ -75,12 +75,14 @@ struct ContentView: View {
     let motionManager : MotionManager = .init()
     let audioPlayerManager : AudioPlayerManager = .init()
     let sessionManager = SessionManager()
-//    
+    let durationManager = DurationManager()
+//
     ContentView()
         .environmentObject(router)
         .environmentObject(audioPlayerManager)
         .environmentObject(motionManager)
         .environmentObject(sessionManager)
+        .environmentObject(durationManager)
         
 //    //
 //    ContentView()
