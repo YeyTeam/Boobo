@@ -121,7 +121,7 @@ struct CustomTimePicker: View {
                 .pickerStyle(.wheel)
                 .frame(width: 80)
                 
-                Text("Hour")
+                Text("Hr")
                     .font(.headline)
                     .foregroundColor(.white)
             }
@@ -138,7 +138,7 @@ struct CustomTimePicker: View {
                 .pickerStyle(.wheel)
                 .frame(width: 80)
                 
-                Text("Minute")
+                Text("Min")
                     .font(.headline)
                     .foregroundColor(.white)
             }

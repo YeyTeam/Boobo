@@ -148,7 +148,6 @@ struct PlaySound: View {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             isPlaying = true
                             showOverlay = true
-                            playSoundVM.playSound()
                         }
                     }
                 }) {
@@ -209,7 +208,6 @@ struct PlaySound: View {
             playSoundVM.audioPlayerManager = audioPlayerManager
             playSoundVM.loadMix(context: context)
             motionManager.start()
-            
         }
         .navigationBarBackButtonHidden(true)
     }

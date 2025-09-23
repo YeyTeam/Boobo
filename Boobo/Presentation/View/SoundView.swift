@@ -115,7 +115,7 @@ struct SoundView: View {
             .padding(.top, 14)   // space under rounded top
             .padding(.bottom, 12)
             .environmentObject(durationManager)
-            .presentationDetents([.fraction(0.45)])
+            .presentationDetents([.fraction(0.6)])
             .presentationCornerRadius(24)
             .presentationDragIndicator(.hidden)
             .presentationBackground(
@@ -231,7 +231,7 @@ struct SoundView: View {
         
         // MARK: - Start session bar
     private var startSessionBar: some View {
-        StartSessionBar()
+        StartSessionBar(viewModel: viewModel)
             .padding(.top, 20)
     }
         
@@ -403,9 +403,11 @@ struct SoundView: View {
     
     private struct StartSessionBar: View {
         @EnvironmentObject var routeManager: RouteManager
+        @StateObject var viewModel: SoundViewModel
         
         var body: some View {
             Button {
+                viewModel.audioPlayerManager.stopAll()
                 routeManager.navigate(to: .sleepTime)
             } label: {
                 if #available(iOS 26.0, *) {
