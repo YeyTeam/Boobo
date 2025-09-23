@@ -16,6 +16,7 @@ struct PlaySound: View {
     @EnvironmentObject var audioPlayerManager : AudioPlayerManager
     @EnvironmentObject var motionManager : MotionManager
     @State var showAlert : Bool = false
+    @Environment(\.modelContext) var context
     
     var body: some View {
         ZStack {
@@ -120,14 +121,22 @@ struct PlaySound: View {
                         }
                     }
                     
-                    Text("Soundku")
-                        .font(.title3)
-                        .fontWeight(.semibold)
+                    Text("\(playSoundVM.currentMix.mixName)")
+                        .font(.title.bold())
                         .foregroundColor(.white)
-                    
-                    Text("Rain, Waterfall, Birds")
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.7))
+                    HStack(spacing : 0){
+                        var count = 1
+                        ForEach(playSoundVM.currentMix.mixSounds, id: \.self.id) { sound in
+                            Text("\(sound.name) \( ( count < (playSoundVM.currentMix.mixSounds.count - 1) ) ? ", " : "" )")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.7))
+                                .onAppear {
+                                    count += 1
+                                }
+                            
+                        }
+                    }
+                   
                 }
                 
                 Spacer()
@@ -191,24 +200,26 @@ struct PlaySound: View {
                         playSoundVM.stopSound()
                     }
                 }
-                .onAppear(){
-                    playSoundVM.audioPlayerManager = audioPlayerManager
-                    
-                    motionManager.start()
-                    
-                }
+                
             }
                 
+        }
+        .onAppear(){
+            playSoundVM.audioPlayerManager = audioPlayerManager
+            playSoundVM.loadMix(context: context)
+            motionManager.start()
+            
         }
         .navigationBarBackButtonHidden(true)
     }
 }
 
-struct PlaySound_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            PlaySound()
-        }
-        .preferredColorScheme(.dark)
-    }
+#Preview {
+    @Previewable var audioPlayerManager = AudioPlayerManager()
+    @Previewable var motionManager = MotionManager()
+
+    PlaySound()
+        .environmentObject(audioPlayerManager)
+        .environmentObject(motionManager)
+     
 }

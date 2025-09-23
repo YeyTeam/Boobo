@@ -6,9 +6,13 @@
 //
 
 import Foundation
+import SwiftData
 
 class PlaySoundViewModel: ObservableObject {
     var audioPlayerManager : AudioPlayerManager = AudioPlayerManager()
+    var mixManager: MixManager = MixManager()
+    @Published var currentMix:MixModel = MixModel(mixName: "My Mix", mixSounds: [])
+    
     var sounds: [SoundModel] = [
         soundList[0],
         soundList[1],
@@ -26,6 +30,17 @@ class PlaySoundViewModel: ObservableObject {
     
     func stopSound() {
         audioPlayerManager.stopAll()
+    }
+    
+    func loadMix(context : ModelContext){
+        do{
+            if let mix = try mixManager.fetchData(for: context).first(where: { $0.id == UUID( uuidString : UserDefaults.standard.string(forKey: "currentMixID") ?? "") }){
+                print(mix.mixName)
+                self.currentMix = mix
+            }
+        }catch{
+            print("Error getting mix data")
+        }
     }
 }
 

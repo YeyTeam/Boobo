@@ -130,8 +130,24 @@ class SoundViewModel:ObservableObject {
 
     }
     
+    func loadLastMix(){
+        if let id = UserDefaults.standard.string(forKey: "currentMixID") {
+            if context != nil {
+                do{
+                    let mix = try self.mixManager.fetchData(for: context!).first(where: { $0.id == UUID(uuidString: id) })
+                    self.loadMix(mixData: mix!)
+                }catch{
+                    print("Error in fetching : \(error.localizedDescription)")
+                }
+               
+            }
+           
+        }
+    }
+    
     func loadMix(mixData : MixModel){
         self.sounds.removeAll()
+        UserDefaults.standard.set(mixData.id.uuidString, forKey: "currentMixID")
 
         for sound in mixData.mixSounds {
             self.sounds.append(SoundModel(

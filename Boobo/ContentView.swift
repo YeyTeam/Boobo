@@ -15,31 +15,45 @@ struct ContentView: View {
     @StateObject var audioPlayerManager = AudioPlayerManager()
     @StateObject var motionManager = MotionManager()
     @State var userHasBoarded: Bool = UserDefaults.standard.bool(forKey: "userHasBoarded")
+    @State var hasLanded: Bool = false
     
     var body: some View {
-        NavigationStack(path: $router.mainPath) {
-            HomeView()
-                .navigationDestination(for: MainRouter.self) {
-                    route in
-                    router.getContent(route: route)
+        if hasLanded {
+            NavigationStack(path: $router.mainPath) {
+                HomeView()
+                    .navigationDestination(for: MainRouter.self) {
+                        route in
+                        router.getContent(route: route)
+                    }
+            }
+            .onAppear {
+                            let now = Date()
+                            let calendar = Calendar.current
+                            let hour = calendar.component(.hour, from: now)
+                            let minute = calendar.component(.minute, from: now)
+                            let second = calendar.component(.second, from: now)
+                            print("hour \(hour), minute \(minute), second \(second)")
+                
+                        NotificationManager.shared.shceduleNotification(hour : hour, minute: minute, seconds: second + 10, router : router)
+                
+                if !userHasBoarded {
+                    router.resetRoot()
+                    router.navigate(to: .onboarding)
+                }
+                
+            }
+        }else{
+            LandingPage()
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        withAnimation{
+                            self.hasLanded.toggle()
+
+                        }
+                    }
                 }
         }
-        .onAppear {
-                        let now = Date()
-                        let calendar = Calendar.current
-                        let hour = calendar.component(.hour, from: now)
-                        let minute = calendar.component(.minute, from: now)
-                        let second = calendar.component(.second, from: now)
-                        print("hour \(hour), minute \(minute), second \(second)")
-            
-                    NotificationManager.shared.shceduleNotification(hour : hour, minute: minute, seconds: second + 10, router : router)
-            
-            if !userHasBoarded {
-                router.resetRoot()
-                router.navigate(to: .onboarding)
-            }
-            
-        }
+        
     }
 
 }

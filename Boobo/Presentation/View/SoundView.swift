@@ -129,6 +129,7 @@ struct SoundView: View {
             viewModel.audioPlayerManager = audioManager
             viewModel.context = context
             viewModel.loadMixData(context:context)
+            viewModel.loadLastMix()  
             //            sessionManager.isSleepTime = false
             //            print(sessionManager.isSleepTime)
             // ===== Duration sheet =====

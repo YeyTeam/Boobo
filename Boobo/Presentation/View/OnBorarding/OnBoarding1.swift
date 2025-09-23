@@ -16,6 +16,8 @@ struct OnBoarding1:View {
             Spacer()
             
             Image("PersonSleep")
+                .resizable()
+                .frame(width : 165, height: 250)
             
             Text("Because great nights, lead to great days")
                 .foregroundStyle(.white)
